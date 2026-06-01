@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KynoviaAdminShell } from "../_components/KynoviaAdminShell";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
@@ -77,25 +78,12 @@ export default async function FinanceDashboardPage() {
   const maxPaymentTotal = Math.max(...clients.map(paymentTotal), 1);
 
   return (
-    <main className="admin-shell">
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Kynovia Condo Admin</p>
-          <h1>Financeiro dos clientes</h1>
-          <p className="muted">
-            Gestão financeira centralizada, pagamentos, inadimplência e bloqueio de uso dos clientes.
-          </p>
-        </div>
-        <div className="shell-actions">
-          <Link className="button-link secondary" href="/dashboard/condominiums">
-            Clientes
-          </Link>
-          <Link className="button-link secondary" href="/dashboard">
-            Voltar
-          </Link>
-        </div>
-      </header>
-
+    <KynoviaAdminShell
+      active="finance"
+      title="Financeiro dos clientes"
+      description="Gestão financeira centralizada, pagamentos, inadimplência e bloqueio de uso dos clientes."
+      profile={profile}
+    >
       {error ? <p className="form-error">Falha ao carregar financeiro dos clientes.</p> : null}
 
       <section className="finance-dashboard">
@@ -170,6 +158,6 @@ export default async function FinanceDashboardPage() {
           </div>
         </div>
       </section>
-    </main>
+    </KynoviaAdminShell>
   );
 }

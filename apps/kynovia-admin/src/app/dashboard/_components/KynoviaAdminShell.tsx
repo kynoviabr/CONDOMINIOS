@@ -5,7 +5,7 @@ import { kynoviaAdminNavigation } from "../../../lib/customers/metadata";
 import type { AuthProfile } from "@kynovia/auth";
 
 type KynoviaAdminShellProps = {
-  active: "customers" | "dashboard" | "users";
+  active: "customers" | "dashboard" | "finance" | "users";
   children: ReactNode;
   description: string;
   profile: AuthProfile;

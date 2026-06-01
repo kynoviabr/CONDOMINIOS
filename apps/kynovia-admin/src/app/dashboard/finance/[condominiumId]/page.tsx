@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KynoviaAdminShell } from "../../_components/KynoviaAdminShell";
 import { FinanceStatusFields } from "../../condominiums/FinanceStatusFields";
 import { updateCondominiumFinanceAction } from "../../condominiums/actions";
 import { requireAuthorizedProfile } from "../../../../lib/auth/session";
@@ -84,13 +85,16 @@ export default async function ClientFinancePage({
 
   if (condominiumError || !condominium) {
     return (
-      <main className="admin-shell">
-        <p className="eyebrow">Kynovia Condo Admin</p>
-        <h1>Financeiro não encontrado</h1>
+      <KynoviaAdminShell
+        active="finance"
+        title="Financeiro não encontrado"
+        description="Não foi possível localizar o cliente financeiro solicitado."
+        profile={profile}
+      >
         <Link className="button-link secondary" href="/dashboard/finance">
           Voltar
         </Link>
-      </main>
+      </KynoviaAdminShell>
     );
   }
 
@@ -105,23 +109,20 @@ export default async function ClientFinancePage({
   const failure = errorMessage(query.error);
 
   return (
-    <main className="admin-shell">
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Financeiro Kynovia</p>
-          <h1>{condominium.name}</h1>
-          <p className="muted">Controle financeiro, pagamentos, cobranças e bloqueio de uso do cliente.</p>
-        </div>
-        <div className="shell-actions">
-          <Link className="button-link secondary" href={`/dashboard/condominiums/${condominium.id}`}>
-            Cadastro do cliente
-          </Link>
-          <Link className="button-link secondary" href="/dashboard/finance">
-            Voltar
-          </Link>
-        </div>
-      </header>
-
+    <KynoviaAdminShell
+      active="finance"
+      title={condominium.name}
+      description="Controle financeiro, pagamentos, cobranças e bloqueio de uso do cliente."
+      profile={profile}
+    >
+      <div className="shell-actions">
+        <Link className="button-link secondary" href={`/dashboard/condominiums/${condominium.id}`}>
+          Cadastro do cliente
+        </Link>
+        <Link className="button-link secondary" href="/dashboard/finance">
+          Voltar
+        </Link>
+      </div>
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
 
@@ -216,6 +217,6 @@ export default async function ClientFinancePage({
           </div>
         </div>
       </section>
-    </main>
+    </KynoviaAdminShell>
   );
 }

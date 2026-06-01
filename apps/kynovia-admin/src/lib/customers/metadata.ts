@@ -70,7 +70,8 @@ export const forbiddenKynoviaAdminOperationalModules = [
 export const kynoviaAdminNavigation = [
   { href: "/dashboard", key: "dashboard", label: "Dashboard" },
   { href: "/dashboard/condominiums", key: "customers", label: "Gestão de Clientes" },
-  { href: "/dashboard/users", key: "users", label: "Gestão de Usuários" }
+  { href: "/dashboard/users", key: "users", label: "Gestão de Usuários" },
+  { href: "/dashboard/finance", key: "finance", label: "Financeiro" }
 ] as const;
 
 export function metadataObject(value: unknown): CondominiumMetadata {

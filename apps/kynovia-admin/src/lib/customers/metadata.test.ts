@@ -40,7 +40,8 @@ describe("Kynovia Condo Admin customer metadata", () => {
     expect(kynoviaAdminNavigation.map((item) => item.label)).toEqual([
       "Dashboard",
       "Gestão de Clientes",
-      "Gestão de Usuários"
+      "Gestão de Usuários",
+      "Financeiro"
     ]);
     expect(forbiddenKynoviaAdminOperationalModules).toContain("moradores");
     expect(kynoviaAdminNavigation.some((item) => item.label.toLowerCase().includes("morador"))).toBe(false);
