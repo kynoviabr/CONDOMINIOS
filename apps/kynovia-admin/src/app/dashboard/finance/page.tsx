@@ -80,10 +80,10 @@ export default async function FinanceDashboardPage() {
     <main className="admin-shell">
       <header className="admin-header">
         <div>
-          <p className="eyebrow">Kynovia Admin</p>
+          <p className="eyebrow">Kynovia Condo Admin</p>
           <h1>Financeiro dos clientes</h1>
           <p className="muted">
-            Gestao financeira centralizada, pagamentos, inadimplencia e bloqueio de uso dos clientes.
+            Gestão financeira centralizada, pagamentos, inadimplência e bloqueio de uso dos clientes.
           </p>
         </div>
         <div className="shell-actions">

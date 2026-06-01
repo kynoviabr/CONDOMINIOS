@@ -94,7 +94,7 @@ export async function validateInviteQrAction(formData: FormData) {
 
   const now = Date.now();
   let result: InviteValidationResult = "allowed";
-  let reason = `Convite valido para ${invite.visitor_name}.`;
+  let reason = `Convite válido para ${invite.visitor_name}.`;
 
   if (invite.status === "cancelled") {
     result = "cancelled";
@@ -104,7 +104,7 @@ export async function validateInviteQrAction(formData: FormData) {
     reason = `Convite com status ${invite.status}.`;
   } else if (new Date(invite.starts_at).getTime() > now) {
     result = "not_started";
-    reason = "Convite ainda nao esta vigente.";
+    reason = "Convite ainda não esta vigente.";
   } else if (new Date(invite.expires_at).getTime() < now) {
     result = "expired";
     reason = "Convite expirado.";
@@ -185,7 +185,7 @@ export async function validateInvitePlateAction(formData: FormData) {
 
   if (new Date(invite.starts_at).getTime() > now) {
     result = "not_started";
-    reason = "Convite por placa ainda nao esta vigente.";
+    reason = "Convite por placa ainda não esta vigente.";
   } else if (new Date(invite.expires_at).getTime() < now) {
     result = "expired";
     reason = "Convite por placa expirado.";

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { isValidCnpj, onlyDigits } from "../../../lib/customers/metadata";
+import { PhoneInput } from "./PhoneInput";
 import { brazilStates, brazilTimezones, timezoneByState } from "./form-options";
 
 type ClientRegistrationFieldsProps = {
@@ -36,20 +37,6 @@ function formatCnpj(value: string) {
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1/$2")
     .replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-function formatPhone(value: string) {
-  const digits = onlyDigits(value).slice(0, 11);
-
-  if (digits.length <= 2) {
-    return digits;
-  }
-
-  if (digits.length <= 7) {
-    return digits.replace(/^(\d{2})(\d+)/, "($1) $2");
-  }
-
-  return digits.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
 }
 
 function formatCep(value: string) {
@@ -94,10 +81,6 @@ export function ClientRegistrationFields({
   const [timezoneValue, setTimezoneValue] = useState(timezone);
   const [cnpj, setCnpj] = useState(formatCnpj(clientCnpj));
   const [cnpjError, setCnpjError] = useState("");
-  const [phone, setPhone] = useState(formatPhone(clientPhone));
-  const [whatsapp, setWhatsapp] = useState(formatPhone(clientWhatsapp));
-  const [contact1Phone, setContact1Phone] = useState(formatPhone(contact1Whatsapp));
-  const [contact2Phone, setContact2Phone] = useState(formatPhone(contact2Whatsapp));
   const [cep, setCep] = useState(formatCep(addressPostalCode));
   const [address, setAddress] = useState(addressLine);
   const [city, setCity] = useState(addressCity);
@@ -162,8 +145,8 @@ export function ClientRegistrationFields({
     <>
       <div className="form-row split-row">
         <label>
-          <RequiredLabel>Razao Social</RequiredLabel>
-          <input name="legal_name" required defaultValue={legalName} placeholder="Condominio Aurora SPE Ltda." />
+          <RequiredLabel>Razão Social</RequiredLabel>
+          <input name="legal_name" required defaultValue={legalName} placeholder="Condomínio Aurora SPE Ltda." />
         </label>
         <label>
           <RequiredLabel>Nome Fantasia</RequiredLabel>
@@ -177,29 +160,11 @@ export function ClientRegistrationFields({
         </label>
         <label>
           <RequiredLabel>Telefone</RequiredLabel>
-          <input
-            name="client_phone"
-            required
-            inputMode="tel"
-            pattern="\(\d{2}\) \d{5}-\d{4}"
-            placeholder="(XX) XXXXX-XXXX"
-            title="Use o formato (XX) XXXXX-XXXX"
-            value={phone}
-            onChange={(event) => setPhone(formatPhone(event.target.value))}
-          />
+          <PhoneInput name="client_phone" required defaultValue={clientPhone} />
         </label>
         <label>
           <RequiredLabel>WhatsApp</RequiredLabel>
-          <input
-            name="client_whatsapp"
-            required
-            inputMode="tel"
-            pattern="\(\d{2}\) \d{5}-\d{4}"
-            placeholder="(XX) XXXXX-XXXX"
-            title="Use o formato (XX) XXXXX-XXXX"
-            value={whatsapp}
-            onChange={(event) => setWhatsapp(formatPhone(event.target.value))}
-          />
+          <PhoneInput name="client_whatsapp" required defaultValue={clientWhatsapp} />
         </label>
       </div>
       <div className="form-row cnpj-cep-row">
@@ -216,8 +181,8 @@ export function ClientRegistrationFields({
             onBlur={(event) => {
               const isComplete = onlyDigits(event.target.value).length === 14;
               const isValid = !isComplete || isValidCnpj(event.target.value);
-              event.target.setCustomValidity(isValid ? "" : "Informe um CNPJ valido.");
-              setCnpjError(isValid ? "" : "CNPJ invalido.");
+              event.target.setCustomValidity(isValid ? "" : "Informe um CNPJ válido.");
+              setCnpjError(isValid ? "" : "CNPJ inválido.");
             }}
             onChange={(event) => {
               const formatted = formatCnpj(event.target.value);
@@ -253,7 +218,7 @@ export function ClientRegistrationFields({
         </select>
       </label>
       <label>
-        <RequiredLabel>Endereco completo</RequiredLabel>
+        <RequiredLabel>Endereço completo</RequiredLabel>
         <input
           name="address_line"
           required
@@ -263,7 +228,7 @@ export function ClientRegistrationFields({
       </label>
       <div className="form-row address-number-row">
         <label>
-          <RequiredLabel>Numero</RequiredLabel>
+          <RequiredLabel>Número</RequiredLabel>
           <input name="address_number" required defaultValue={addressNumber} />
         </label>
         <label>
@@ -300,15 +265,7 @@ export function ClientRegistrationFields({
         </label>
         <label>
           <RequiredLabel>WhatsApp do contato 1</RequiredLabel>
-          <input
-            name="contact_1_whatsapp"
-            required
-            inputMode="tel"
-            pattern="\(\d{2}\) \d{5}-\d{4}"
-            placeholder="(XX) XXXXX-XXXX"
-            value={contact1Phone}
-            onChange={(event) => setContact1Phone(formatPhone(event.target.value))}
-          />
+          <PhoneInput name="contact_1_whatsapp" required defaultValue={contact1Whatsapp} />
         </label>
       </div>
       <div className="form-row split-row">
@@ -318,21 +275,14 @@ export function ClientRegistrationFields({
         </label>
         <label>
           WhatsApp do contato 2
-          <input
-            name="contact_2_whatsapp"
-            inputMode="tel"
-            pattern="\(\d{2}\) \d{5}-\d{4}"
-            placeholder="(XX) XXXXX-XXXX"
-            value={contact2Phone}
-            onChange={(event) => setContact2Phone(formatPhone(event.target.value))}
-          />
+          <PhoneInput name="contact_2_whatsapp" defaultValue={contact2Whatsapp} />
         </label>
       </div>
       {showContractFields ? (
         <div className="contract-fields">
           <div className="form-row split-row">
             <label>
-              <RequiredLabel>Numero do contrato</RequiredLabel>
+              <RequiredLabel>Número do contrato</RequiredLabel>
               <input name="contract_number" required defaultValue={contractNumber} />
             </label>
             <label>
@@ -356,7 +306,7 @@ export function ClientRegistrationFields({
               <select name="contract_documents_status" defaultValue={contractDocumentsStatus}>
                 <option value="pending">Placeholder seguro: documentos pendentes</option>
                 <option value="received">Documentos recebidos fora do sistema</option>
-                <option value="not_required">Nao aplicavel nesta etapa</option>
+                <option value="not_required">Não aplicavel nesta etapa</option>
               </select>
             </label>
           </div>

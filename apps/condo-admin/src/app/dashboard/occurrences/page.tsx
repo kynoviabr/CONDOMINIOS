@@ -51,9 +51,9 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
-    create_occurrence_failed: "Nao foi possivel registrar a ocorrencia.",
-    missing_occurrence_fields: "Informe titulo, criticidade e status validos.",
-    update_occurrence_failed: "Nao foi possivel atualizar a ocorrencia."
+    create_occurrence_failed: "Não foi possível registrar a ocorrência.",
+    missing_occurrence_fields: "Informe titulo, criticidade e status válidos.",
+    update_occurrence_failed: "Não foi possível atualizar a ocorrência."
   };
 
   return status ? labels[status] ?? null : null;
@@ -98,7 +98,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
           <p className="eyebrow">Condo Admin</p>
           <h1>Ocorrencias</h1>
           <p className="muted">
-            Registro administrativo de ocorrencias operacionais do {condominium.name}.
+            Registro administrativo de ocorrências operacionais do {condominium.name}.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -108,7 +108,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
-      {error ? <p className="form-error">Falha ao carregar ocorrencias.</p> : null}
+      {error ? <p className="form-error">Falha ao carregar ocorrências.</p> : null}
 
       <section className="toolbar">
         <form className="filter-form">
@@ -132,7 +132,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Nova ocorrencia</h2>
+          <h2>Nova ocorrência</h2>
           <form className="admin-form" action={createOccurrenceAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
@@ -153,14 +153,14 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
               Descricao
               <textarea name="description" rows={3} />
             </label>
-            <button type="submit">Registrar ocorrencia</button>
+            <button type="submit">Registrar ocorrência</button>
           </form>
         </div>
 
         <div className="admin-section">
           <h2>Escopo operacional</h2>
           <p className="muted">
-            Esta tela organiza ocorrencias administrativas. A operacao em tempo real da portaria
+            Esta tela organiza ocorrências administrativas. A operação em tempo real da portaria
             permanece no app `web-portaria`.
           </p>
         </div>
@@ -210,12 +210,12 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
                     defaultValue={occurrence.description ?? ""}
                   />
                 </label>
-                <button type="submit">Salvar ocorrencia</button>
+                <button type="submit">Salvar ocorrência</button>
               </form>
             </article>
           ))}
         </div>
-        {!occurrences.length ? <p className="muted">Nenhuma ocorrencia encontrada.</p> : null}
+        {!occurrences.length ? <p className="muted">Nenhuma ocorrência encontrada.</p> : null}
       </section>
     </main>
   );

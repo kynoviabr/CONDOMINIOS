@@ -50,11 +50,11 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
-    create_access_point_failed: "Nao foi possivel cadastrar o ponto de acesso.",
-    delete_access_point_failed: "Nao foi possivel remover o ponto de acesso.",
+    create_access_point_failed: "Não foi possível cadastrar o ponto de acesso.",
+    delete_access_point_failed: "Não foi possível remover o ponto de acesso.",
     missing_access_point_fields: "Informe nome e tipo do ponto de acesso.",
-    missing_access_point_id: "Nao foi possivel identificar o ponto de acesso.",
-    update_access_point_failed: "Nao foi possivel atualizar o ponto de acesso."
+    missing_access_point_id: "Não foi possível identificar o ponto de acesso.",
+    update_access_point_failed: "Não foi possível atualizar o ponto de acesso."
   };
 
   return status ? labels[status] ?? null : null;
@@ -103,7 +103,7 @@ export default async function GatesPage({ searchParams }: { searchParams: Search
           <h1>Portoes e cancelas</h1>
           <p className="muted">
             Configuracao dos pontos de acesso do {condominium.name}. Comandos fisicos reais
-            continuam restritos a operacao da portaria e provedores configurados.
+            continuam restritos a operação da portaria e provedores configurados.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">

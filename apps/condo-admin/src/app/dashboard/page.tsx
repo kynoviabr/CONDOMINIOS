@@ -16,8 +16,8 @@ export default async function DashboardPage() {
   return (
     <AdminDashboardShell
       eyebrow="Condo Admin"
-      title={condominium ? condominium.name : "Administracao do condominio"}
-      description="Portal do administrador do condominio para gestao operacional do proprio ambiente."
+      title={condominium ? condominium.name : "Administração do condomínio"}
+      description="Portal do administrador do condomínio para gestao operacional do próprio ambiente."
       profile={profile}
       signOutAction={signOutAction}
     >
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
         <>
           <section className="condo-overview">
             <div className="metric-card">
-              <span>Condominio</span>
+              <span>Condomínio</span>
               <strong>{condominium.name}</strong>
             </div>
             <div className="metric-card">
@@ -42,14 +42,14 @@ export default async function DashboardPage() {
               <Link className="module-card" href={module.href} key={module.key}>
                 <span>{module.title}</span>
                 <strong>{module.description}</strong>
-                {module.phase === "foundation" ? <small>Modulo em fundacao</small> : null}
+                {module.phase === "foundation" ? <small>Modulo em fundação</small> : null}
               </Link>
             ))}
           </section>
         </>
       ) : (
         <p className="form-error">
-          Nenhum condominio ativo foi encontrado para este perfil. Solicite o vinculo de
+          Nenhum condomínio ativo foi encontrado para este perfil. Solicite o vínculo de
           implantacao ao suporte Kynovia.
         </p>
       )}

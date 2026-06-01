@@ -15,38 +15,38 @@ export const dynamic = "force-dynamic";
 
 function statusMessage(status?: string) {
   if (status === "condominium_updated") {
-    return "Dados do condominio atualizados.";
+    return "Dados do condomínio atualizados.";
   }
 
   if (status === "settings_updated") {
-    return "Configuracoes operacionais atualizadas.";
+    return "Configurações operacionais atualizadas.";
   }
 
   if (status?.includes("failed") || status?.startsWith("missing")) {
     return null;
   }
 
-  return status ? `Operacao concluida: ${status}` : null;
+  return status ? `Operação concluída: ${status}` : null;
 }
 
 function errorMessage(status?: string) {
   if (status === "missing_condominium_fields") {
-    return "Informe o nome do condominio.";
+    return "Informe o nome do condomínio.";
   }
 
   if (status === "missing_condominium_id") {
-    return "Nao foi possivel identificar o condominio ativo.";
+    return "Não foi possível identificar o condomínio ativo.";
   }
 
   if (status === "update_condominium_failed") {
-    return "Nao foi possivel atualizar os dados do condominio.";
+    return "Não foi possível atualizar os dados do condomínio.";
   }
 
   if (status === "update_settings_failed") {
-    return "Nao foi possivel atualizar as configuracoes operacionais.";
+    return "Não foi possível atualizar as configurações operacionais.";
   }
 
-  return status?.includes("failed") ? `Nao foi possivel concluir: ${status}` : null;
+  return status?.includes("failed") ? `Não foi possível concluir: ${status}` : null;
 }
 
 export default async function SettingsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -63,9 +63,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Configuracoes do condominio</h1>
+          <h1>Configurações do condomínio</h1>
           <p className="muted">
-            Ajustes simples do ambiente operacional do condominio. Configuracoes avancadas ficam
+            Ajustes simples do ambiente operacional do condomínio. Configurações avançadas ficam
             ocultas para reduzir risco e complexidade.
           </p>
         </div>
@@ -81,12 +81,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
         <div className="admin-section">
           <h2>Dados basicos</h2>
           <p className="muted">
-            Nome e timezone usados nos cadastros, convites e operacao da portaria.
+            Nome e timezone usados nos cadastros, convites e operação da portaria.
           </p>
           <form className="admin-form" action={updateCondominiumAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
             <label>
-              Nome do condominio
+              Nome do condomínio
               <input name="name" defaultValue={condominium.name} required />
             </label>
             <label>
@@ -102,9 +102,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
         </div>
 
         <div className="admin-section">
-          <h2>Operacao</h2>
+          <h2>Operação</h2>
           <p className="muted">
-            Parametros diarios expostos ao administrador do condominio. Campos tecnicos em JSON nao
+            Parâmetros diários expostos ao administrador do condomínio. Campos técnicos em JSON não
             aparecem nesta tela.
           </p>
           <form className="admin-form" action={updateOperationalSettingsAction}>
@@ -118,7 +118,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
                 defaultValue={condominium.visitorParkingCapacity}
               />
             </label>
-            <button type="submit">Salvar operacao</button>
+            <button type="submit">Salvar operação</button>
           </form>
         </div>
       </section>
