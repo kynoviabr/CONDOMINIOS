@@ -1,5 +1,4 @@
 import { accessPointKinds } from "@kynovia/database";
-import Link from "next/link";
 import {
   createAccessPointAction,
   deleteAccessPointAction,
@@ -29,10 +28,10 @@ export const dynamic = "force-dynamic";
 
 function kindLabel(kind: string) {
   const labels: Record<string, string> = {
-    pedestrian_gate: "Portao pedestre",
-    vehicle_gate: "Portao veicular",
+    pedestrian_gate: "Portão pedestre",
+    vehicle_gate: "Portão veicular",
     garage_gate: "Garagem",
-    service_gate: "Servico"
+    service_gate: "Serviço"
   };
 
   return labels[kind] ?? kind;
@@ -100,15 +99,12 @@ export default async function GatesPage({ searchParams }: { searchParams: Search
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Portoes e cancelas</h1>
+          <h1>Portões e cancelas</h1>
           <p className="muted">
-            Configuracao dos pontos de acesso do {condominium.name}. Comandos fisicos reais
-            continuam restritos a operação da portaria e provedores configurados.
+            Configuração dos pontos de acesso do {condominium.name}. Comandos físicos reais
+            continuam restritos à operação da portaria e provedores configurados.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -122,7 +118,7 @@ export default async function GatesPage({ searchParams }: { searchParams: Search
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
               Nome
-              <input name="name" required placeholder="Portao social" />
+              <input name="name" required placeholder="Portão social" />
             </label>
             <label>
               Tipo

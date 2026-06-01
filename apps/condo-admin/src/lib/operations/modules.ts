@@ -20,7 +20,7 @@ export const operationalModules = [
     href: "/dashboard/units",
     key: "units",
     phase: "available",
-    scope: ["Criar e manter unidades", "Organizar blocos, numeros e andares"],
+    scope: ["Criar e manter unidades", "Organizar blocos, números e andares"],
     title: "Unidades"
   },
   {
@@ -32,35 +32,35 @@ export const operationalModules = [
     title: "Moradores"
   },
   {
-    description: "Veiculos de moradores e visitantes autorizados.",
+    description: "Veículos de moradores e visitantes autorizados.",
     href: "/dashboard/vehicles",
     key: "vehicles",
     phase: "foundation",
-    scope: ["Centralizar placas", "Preparar regras de autorizacao", "Apoiar leitura por placa"],
-    title: "Veiculos"
+    scope: ["Centralizar placas", "Preparar regras de autorização", "Apoiar leitura por placa"],
+    title: "Veículos"
   },
   {
-    description: "Pontos de acesso, portoes, cancelas e comandos recentes.",
+    description: "Pontos de acesso, portões, cancelas e comandos recentes.",
     href: "/dashboard/gates",
     key: "gates",
     phase: "available",
     scope: ["Configurar pontos de acesso", "Acompanhar comandos", "Preparar integrações"],
-    title: "Portoes e cancelas"
+    title: "Portões e cancelas"
   },
   {
-    description: "Funcionarios autorizados pelo condomínio.",
+    description: "Funcionários autorizados pelo condomínio.",
     href: "/dashboard/employees",
     key: "employees",
     phase: "foundation",
-    scope: ["Cadastrar funcionarios", "Controlar status", "Preparar vínculo com acessos"],
-    title: "Funcionarios"
+    scope: ["Cadastrar funcionários", "Controlar status", "Preparar vínculo com acessos"],
+    title: "Funcionários"
   },
   {
     description: "Prestadores e fornecedores recorrentes.",
     href: "/dashboard/suppliers",
     key: "suppliers",
     phase: "foundation",
-    scope: ["Organizar prestadores", "Controlar recorrencia", "Preparar regras de entrada"],
+    scope: ["Organizar prestadores", "Controlar recorrência", "Preparar regras de entrada"],
     title: "Prestadores"
   },
   {
@@ -72,7 +72,7 @@ export const operationalModules = [
     title: "Visitantes"
   },
   {
-    description: "Convites recentes, validações, vagas e blacklist de placas.",
+    description: "Convites recentes, validações, vagas e lista de bloqueio de placas.",
     href: "/dashboard/invites",
     key: "invites",
     phase: "available",
@@ -93,14 +93,14 @@ export const operationalModules = [
     key: "occurrences",
     phase: "available",
     scope: ["Registrar ocorrências", "Classificar eventos", "Acompanhar histórico"],
-    title: "Ocorrencias"
+    title: "Ocorrências"
   },
   {
-    description: "Dados basicos, timezone e capacidade de vagas visitantes.",
+    description: "Dados básicos, fuso horário e capacidade de vagas visitantes.",
     href: "/dashboard/settings",
     key: "settings",
     phase: "available",
-    scope: ["Ajustar dados basicos", "Configurar vagas", "Evitar JSON exposto"],
+    scope: ["Ajustar dados básicos", "Configurar vagas", "Evitar JSON exposto"],
     title: "Configurações do Condomínio"
   }
 ] satisfies CondoOperationalModule[];

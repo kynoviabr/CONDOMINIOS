@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { disablePlateBlacklistAction, upsertPlateBlacklistAction } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
@@ -73,8 +72,8 @@ function unitLabel(unit: Unit | undefined) {
 
 function statusMessage(status?: string) {
   const labels: Record<string, string> = {
-    blacklist_disabled: "Placa desativada da blacklist.",
-    blacklist_saved: "Placa adicionada a blacklist."
+    blacklist_disabled: "Placa removida da lista de bloqueio.",
+    blacklist_saved: "Placa adicionada à lista de bloqueio."
   };
 
   return status ? labels[status] ?? null : null;
@@ -84,8 +83,8 @@ function errorMessage(status?: string) {
   const labels: Record<string, string> = {
     blacklist_disable_failed: "Não foi possível desativar a placa.",
     blacklist_save_failed: "Não foi possível salvar a placa.",
-    invalid_plate: "Informe uma placa brasileira valida.",
-    missing_blacklist_id: "Não foi possível identificar o item da blacklist."
+    invalid_plate: "Informe uma placa brasileira válida.",
+    missing_blacklist_id: "Não foi possível identificar o item da lista de bloqueio."
   };
 
   return status ? labels[status] ?? null : null;
@@ -157,13 +156,10 @@ export default async function CondominiumInvitesPage({
           <p className="eyebrow">Condo Admin</p>
           <h1>Convites e placas</h1>
           <p className="muted">
-            Historico de convites, validações, vagas visitantes e blacklist de placas do{" "}
+            Histórico de convites, validações, vagas visitantes e lista de bloqueio de placas do{" "}
             {condominium.name}.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -175,7 +171,7 @@ export default async function CondominiumInvitesPage({
         <div className="admin-section">
           <h2>Vagas visitantes</h2>
           <p className="muted">
-            {activeVehicleAccesses.length} veiculo(s) em permanencia
+            {activeVehicleAccesses.length} veículo(s) em permanência
             {condominium.visitorParkingCapacity
               ? ` de ${condominium.visitorParkingCapacity} vaga(s) configuradas`
               : ""}.
@@ -196,7 +192,7 @@ export default async function CondominiumInvitesPage({
         </div>
 
         <div className="admin-section">
-          <h2>Blacklist de placas</h2>
+          <h2>Lista de bloqueio de placas</h2>
           <form className="inline-form compact-form" action={upsertPlateBlacklistAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <input name="plate" required placeholder="ABC1D23" />
@@ -270,7 +266,7 @@ export default async function CondominiumInvitesPage({
               <div>
                 <strong>{validation.result}</strong>
                 <span>
-                  {validation.reason ?? "Sem observacao"} -{" "}
+                  {validation.reason ?? "Sem observação"} -{" "}
                   {formatDate(validation.created_at, condominium.timezone)}
                 </span>
               </div>

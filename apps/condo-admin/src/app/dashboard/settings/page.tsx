@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   updateCondominiumAction,
   updateOperationalSettingsAction
@@ -69,9 +68,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
             ocultas para reduzir risco e complexidade.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -79,9 +75,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Dados basicos</h2>
+          <h2>Dados básicos</h2>
           <p className="muted">
-            Nome e timezone usados nos cadastros, convites e operação da portaria.
+            Nome e fuso horário usados nos cadastros, convites e operação da portaria.
           </p>
           <form className="admin-form" action={updateCondominiumAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
@@ -94,7 +90,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               <input value={condominium.slug} readOnly aria-readonly="true" />
             </label>
             <label>
-              Timezone
+              Fuso horário
               <input name="timezone" defaultValue={condominium.timezone} required />
             </label>
             <button type="submit">Salvar dados</button>

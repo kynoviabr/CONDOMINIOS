@@ -74,7 +74,7 @@ function statusMessage(status?: string) {
     visitor_deleted: "Visitante removido.",
     visitor_vehicle_created: "Placa associada.",
     visitor_vehicle_deleted: "Placa removida.",
-    visit_created: "Historico de visita registrado."
+    visit_created: "Histórico de visita registrado."
   };
 
   return status ? labels[status] ?? null : null;
@@ -87,7 +87,7 @@ function errorMessage(status?: string) {
     create_visitor_vehicle_failed: "Não foi possível associar a placa.",
     delete_visitor_failed: "Não foi possível remover o visitante.",
     delete_visitor_vehicle_failed: "Não foi possível remover a placa.",
-    invalid_visitor_vehicle_plate: "Informe uma placa brasileira valida.",
+    invalid_visitor_vehicle_plate: "Informe uma placa brasileira válida.",
     missing_visit_fields: "Informe visitante e unidade.",
     missing_visitor_fields: "Informe os dados obrigatórios do visitante.",
     missing_visitor_id: "Não foi possível identificar o visitante.",
@@ -168,13 +168,10 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
           <p className="eyebrow">Condo Admin</p>
           <h1>Visitantes</h1>
           <p className="muted">
-            Cadastro basico de visitantes, placas associadas e histórico por unidade do{" "}
+            Cadastro básico de visitantes, placas associadas e histórico por unidade do{" "}
             {condominium.name}.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -213,7 +210,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
               Nome completo
-              <input name="fullName" required placeholder="Joao Visitante" />
+              <input name="fullName" required placeholder="João Visitante" />
             </label>
             <label>
               Documento
@@ -337,7 +334,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
       </section>
 
       <section className="admin-section">
-        <h2>Historico por unidade</h2>
+        <h2>Histórico por unidade</h2>
         <div className="table-wrap">
           <table>
             <thead>

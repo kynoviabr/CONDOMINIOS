@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 
 function severityLabel(severity: string) {
   const labels: Record<string, string> = {
-    critical: "Critica",
+    critical: "Crítica",
     high: "Alta",
     low: "Baixa",
-    medium: "Media"
+    medium: "Média"
   };
 
   return labels[severity] ?? severity;
@@ -42,8 +42,8 @@ function statusLabel(status: string) {
 
 function statusMessage(status?: string) {
   const labels: Record<string, string> = {
-    occurrence_created: "Ocorrencia registrada.",
-    occurrence_updated: "Ocorrencia atualizada."
+    occurrence_created: "Ocorrência registrada.",
+    occurrence_updated: "Ocorrência atualizada."
   };
 
   return status ? labels[status] ?? null : null;
@@ -52,7 +52,7 @@ function statusMessage(status?: string) {
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
     create_occurrence_failed: "Não foi possível registrar a ocorrência.",
-    missing_occurrence_fields: "Informe titulo, criticidade e status válidos.",
+    missing_occurrence_fields: "Informe título, criticidade e status válidos.",
     update_occurrence_failed: "Não foi possível atualizar a ocorrência."
   };
 
@@ -96,14 +96,11 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Ocorrencias</h1>
+          <h1>Ocorrências</h1>
           <p className="muted">
             Registro administrativo de ocorrências operacionais do {condominium.name}.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -136,7 +133,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
           <form className="admin-form" action={createOccurrenceAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
-              Titulo
+              Título
               <input name="title" required placeholder="Tentativa de acesso negada" />
             </label>
             <label>
@@ -150,7 +147,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
               </select>
             </label>
             <label>
-              Descricao
+              Descrição
               <textarea name="description" rows={3} />
             </label>
             <button type="submit">Registrar ocorrência</button>
@@ -167,7 +164,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
       </section>
 
       <section className="admin-section">
-        <h2>Ocorrencias cadastradas</h2>
+        <h2>Ocorrências cadastradas</h2>
         <div className="list-stack">
           {occurrences.map((occurrence) => (
             <article className="management-record" key={occurrence.id}>
@@ -175,7 +172,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
                 <input name="condominiumId" type="hidden" value={condominium.id} />
                 <input name="occurrenceId" type="hidden" value={occurrence.id} />
                 <label>
-                  Titulo
+                  Título
                   <input name="title" required defaultValue={occurrence.title} />
                 </label>
                 <label>
@@ -203,7 +200,7 @@ export default async function OccurrencesPage({ searchParams }: { searchParams: 
                   <input value={formatDate(occurrence.created_at, condominium.timezone)} readOnly />
                 </label>
                 <label>
-                  Descricao
+                  Descrição
                   <textarea
                     name="description"
                     rows={3}

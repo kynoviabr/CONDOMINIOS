@@ -22,7 +22,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <LoginShell
-      eyebrow="Kynovia Access"
       title={appName}
       description={loginDescription}
       signInAction={signInAction}

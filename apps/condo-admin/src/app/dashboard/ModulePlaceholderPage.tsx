@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
 import {
@@ -29,9 +28,6 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
             {module.description} Escopo operacional limitado ao condomínio {context.condominium.name}.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       <section className="admin-grid">
@@ -49,8 +45,8 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
         <div className="admin-section">
           <h2>Status</h2>
           <p className="muted">
-            Este módulo esta em fase de fundação operacional. Nenhum CRUD completo, integração real
-            de hardware ou automacao externa foi ativado nesta etapa.
+            Este módulo está em fase de fundação operacional. Nenhum CRUD completo, integração real
+            de hardware ou automação externa foi ativado nesta etapa.
           </p>
         </div>
       </section>

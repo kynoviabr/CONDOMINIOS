@@ -1,12 +1,5 @@
-import { residentStatuses, residentUnitRelationships } from "@kynovia/database";
-import Link from "next/link";
-import {
-  createResidentAction,
-  deleteResidentAction,
-  linkResidentUnitAction,
-  unlinkResidentUnitAction,
-  updateResidentAction
-} from "./actions";
+import { residentStatuses } from "@kynovia/database";
+import { ResidentsManagement } from "./ResidentsManagement";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
@@ -42,16 +35,6 @@ type ResidentUnit = {
 
 export const dynamic = "force-dynamic";
 
-function unitLabel(unit: Unit | undefined) {
-  if (!unit) {
-    return "Unidade removida";
-  }
-
-  return [unit.block, unit.number, unit.floor ? `${unit.floor} andar` : null]
-    .filter(Boolean)
-    .join(" / ");
-}
-
 function residentMetadata(resident: Resident) {
   return resident.metadata && typeof resident.metadata === "object" && !Array.isArray(resident.metadata)
     ? (resident.metadata as Record<string, unknown>)
@@ -62,20 +45,6 @@ function residentMetadataValue(resident: Resident, key: string) {
   const value = residentMetadata(resident)[key];
   return typeof value === "string" ? value : "";
 }
-function optionLabel(value: string) {
-  const labels: Record<string, string> = {
-    active: "Ativo",
-    blocked: "Bloqueado",
-    dependent: "Dependente",
-    inactive: "Inativo",
-    owner: "Proprietario",
-    resident: "Morador",
-    tenant: "Inquilino"
-  };
-
-  return labels[value] ?? value;
-}
-
 function sanitizeSearch(value: string) {
   return value.replace(/[%,]/g, "").trim();
 }
@@ -86,7 +55,7 @@ function statusMessage(status?: string) {
     resident_updated: "Morador atualizado.",
     resident_deleted: "Morador removido.",
     unit_linked: "Unidade vinculada.",
-    unit_unlinked: "Vinculo removido."
+    unit_unlinked: "Vínculo removido."
   };
 
   return status ? labels[status] ?? null : null;
@@ -175,9 +144,28 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
     : { data: [] };
 
   const residentUnits = (residentUnitsData ?? []) as ResidentUnit[];
-  const unitsById = new Map(units.map((unit) => [unit.id, unit]));
   const success = statusMessage(queryParams.status);
   const failure = errorMessage(queryParams.status);
+  const residentsForList = residents.map((resident) => ({
+    birthDate: residentMetadataValue(resident, "birthDate"),
+    blockReason: resident.block_reason,
+    document: resident.document,
+    email: resident.email,
+    fullName: resident.full_name,
+    id: resident.id,
+    links: residentUnits
+      .filter((link) => link.resident_id === resident.id)
+      .map((link) => ({
+        id: link.id,
+        isPrimary: link.is_primary,
+        relationship: link.relationship,
+        unitId: link.unit_id
+      })),
+    notes: residentMetadataValue(resident, "notes"),
+    phone: resident.phone,
+    status: resident.status,
+    whatsapp: residentMetadataValue(resident, "whatsapp")
+  }));
 
   return (
     <main className="admin-shell">
@@ -186,13 +174,10 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <p className="eyebrow">Condo Admin</p>
           <h1>Moradores</h1>
           <p className="muted">
-            Cadastro operacional do {condominium.name}, com moradores vinculados as unidades do
+            Cadastro operacional do {condominium.name}, com moradores vinculados às unidades do
             condomínio.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -200,239 +185,14 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
-      <section className="toolbar">
-        <form className="filter-form">
-          <label>
-            Buscar
-            <input name="q" placeholder="Nome, CPF, telefone ou e-mail" defaultValue={searchTerm} />
-          </label>
-          <label>
-            Unidade
-            <select name="unitId" defaultValue={validSelectedUnitId}>
-              <option value="">Todas as unidades</option>
-              {units.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unitLabel(unit)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Status
-            <select name="status" defaultValue={statusFilter}>
-              <option value="">Todos</option>
-              {residentStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {optionLabel(status)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit">Filtrar</button>
-          <Link className="button-link secondary" href="/dashboard/residents">
-            Limpar
-          </Link>
-        </form>
-      </section>
-
-      <section className="admin-grid">
-        <div className="admin-section">
-          <h2>Novo morador</h2>
-          <form className="admin-form" action={createResidentAction}>
-            <input name="condominiumId" type="hidden" value={condominium.id} />
-            <label>
-              Nome completo
-              <input name="fullName" required placeholder="Maria Silva" />
-            </label>
-            <label>
-              CPF
-              <input name="document" required placeholder="000.000.000-00" />
-            </label>
-            <label>
-              Data de nascimento
-              <input name="birthDate" type="date" />
-            </label>
-            <label>
-              Telefone
-              <input name="phone" placeholder="(11) 99999-0000" />
-            </label>
-            <label>
-              WhatsApp
-              <input name="whatsapp" placeholder="(11) 99999-0000" />
-            </label>
-            <label>
-              E-mail
-              <input name="email" type="email" placeholder="morador@example.com" />
-            </label>
-            <label>
-              Observações
-              <textarea name="notes" placeholder="Observações internas sobre o morador" />
-            </label>
-            <div className="form-block muted-block">
-              <strong>Foto do morador</strong>
-              <p className="field-hint">
-                Upload real sera conectado ao Supabase Storage em PR futuro. Por enquanto, a tela
-                deixa claro que a foto ainda não sera enviada.
-              </p>
-              <input disabled type="file" accept="image/*" />
-            </div>
-            <label>
-              Status
-              <select name="status" defaultValue="active">
-                {residentStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {optionLabel(status)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Motivo do bloqueio
-              <input name="blockReason" placeholder="Obrigatorio apenas se bloqueado" />
-            </label>
-            <button type="submit">Cadastrar morador</button>
-          </form>
-        </div>
-
-        <div className="admin-section">
-          <h2>Escopo desta tela</h2>
-          <p className="muted">
-            Esta área permite administrar moradores e vínculos com unidades do condomínio ativo.
-            Veiculos, importacao CSV e aprovações avançadas seguem em módulos ou PRs próprios.
-          </p>
-        </div>
-      </section>
-
-      <section className="admin-section">
-        <h2>Moradores cadastrados</h2>
-        <div className="list-stack">
-          {residents.map((resident) => {
-            const links = residentUnits.filter((link) => link.resident_id === resident.id);
-            const birthDate = residentMetadataValue(resident, "birthDate");
-            const notes = residentMetadataValue(resident, "notes");
-            const whatsapp = residentMetadataValue(resident, "whatsapp");
-
-            return (
-              <article className="management-record" key={resident.id}>
-                <form className="record-grid" action={updateResidentAction}>
-                  <input name="condominiumId" type="hidden" value={condominium.id} />
-                  <input name="residentId" type="hidden" value={resident.id} />
-                  <label>
-                    Nome
-                    <input name="fullName" required defaultValue={resident.full_name} />
-                  </label>
-                  <label>
-                    CPF
-                    <input name="document" required defaultValue={resident.document ?? ""} />
-                  </label>
-                  <label>
-                    Data de nascimento
-                    <input name="birthDate" type="date" defaultValue={birthDate} />
-                  </label>
-                  <label>
-                    Telefone
-                    <input name="phone" defaultValue={resident.phone ?? ""} />
-                  </label>
-                  <label>
-                    WhatsApp
-                    <input name="whatsapp" defaultValue={whatsapp} />
-                  </label>
-                  <label>
-                    E-mail
-                    <input name="email" type="email" defaultValue={resident.email ?? ""} />
-                  </label>
-                  <label>
-                    Status
-                    <select name="status" defaultValue={resident.status}>
-                      {residentStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {optionLabel(status)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Motivo bloqueio
-                    <input name="blockReason" defaultValue={resident.block_reason ?? ""} />
-                  </label>
-                  <label>
-                    Observações
-                    <textarea name="notes" defaultValue={notes} />
-                  </label>
-                  <button type="submit">Salvar morador</button>
-                </form>
-
-                <div className="record-subgrid">
-                  <div>
-                    <h3>Unidades</h3>
-                    <form className="inline-form compact-form" action={linkResidentUnitAction}>
-                      <input name="condominiumId" type="hidden" value={condominium.id} />
-                      <input name="residentId" type="hidden" value={resident.id} />
-                      <select name="unitId" required>
-                        <option value="">Unidade</option>
-                        {units.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unitLabel(unit)}
-                          </option>
-                        ))}
-                      </select>
-                      <select name="relationship" defaultValue="resident">
-                        {residentUnitRelationships.map((relationship) => (
-                          <option key={relationship} value={relationship}>
-                            {optionLabel(relationship)}
-                          </option>
-                        ))}
-                      </select>
-                      <label className="checkbox-label">
-                        <input name="isPrimary" type="checkbox" />
-                        Principal
-                      </label>
-                      <button type="submit">Vincular</button>
-                    </form>
-                    <div className="chips">
-                      {links.map((link) => (
-                        <form className="chip" action={unlinkResidentUnitAction} key={link.id}>
-                          <input name="condominiumId" type="hidden" value={condominium.id} />
-                          <input name="residentUnitId" type="hidden" value={link.id} />
-                          <span>
-                            {unitLabel(unitsById.get(link.unit_id))} - {optionLabel(link.relationship)}
-                            {link.is_primary ? " - principal" : ""}
-                          </span>
-                          <button className="secondary compact-button" type="submit">
-                            Remover
-                          </button>
-                        </form>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3>Resumo do morador</h3>
-                    <div className="empty-state">
-                      <p>
-                        Historico de acessos e ocorrências sera exibido aqui quando houver eventos
-                        operacionais vinculados ao morador.
-                      </p>
-                      <p className="field-hint">
-                        Foto preparada: upload real depende de Supabase Storage em PR futuro.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <form action={deleteResidentAction}>
-                  <input name="condominiumId" type="hidden" value={condominium.id} />
-                  <input name="residentId" type="hidden" value={resident.id} />
-                  <button className="secondary" type="submit">
-                    Remover morador
-                  </button>
-                </form>
-              </article>
-            );
-          })}
-        </div>
-        {!residents.length ? <p className="muted">Nenhum morador encontrado.</p> : null}
-      </section>
+      <ResidentsManagement
+        condominiumId={condominium.id}
+        query={searchTerm}
+        residents={residentsForList}
+        selectedStatus={statusFilter}
+        selectedUnitId={validSelectedUnitId}
+        units={units}
+      />
     </main>
   );
 }

@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { createUnitAction, deleteUnitAction, updateUnitAction } from "../actions";
+import { UnitsManagement } from "./UnitsManagement";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
@@ -38,7 +37,7 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   if (status === "missing_unit_fields") {
-    return "Informe ao menos o numero da unidade.";
+    return "Informe ao menos o número da unidade.";
   }
 
   if (status === "missing_unit_id") {
@@ -95,93 +94,13 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             ativo do usuário.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
       {error ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
-      <section className="toolbar">
-        <form className="filter-form">
-          <label>
-            Buscar
-            <input name="q" placeholder="Bloco, numero ou andar" defaultValue={q} />
-          </label>
-          <button type="submit">Filtrar</button>
-          <Link className="button-link secondary" href="/dashboard/units">
-            Limpar
-          </Link>
-        </form>
-      </section>
-
-      <section className="admin-grid">
-        <div className="admin-section">
-          <h2>Unidades cadastradas</h2>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Bloco</th>
-                  <th>Número</th>
-                  <th>Andar</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(units ?? []).map((unit) => (
-                  <tr key={unit.id}>
-                    <td colSpan={4}>
-                      <form className="inline-form" action={updateUnitAction}>
-                        <input type="hidden" name="condominiumId" value={condominium.id} />
-                        <input type="hidden" name="unitId" value={unit.id} />
-                        <input name="block" defaultValue={unit.block ?? ""} placeholder="Bloco" />
-                        <input name="number" defaultValue={unit.number} required />
-                        <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
-                        <button type="submit">Salvar</button>
-                        <button
-                          className="secondary"
-                          form={`delete-unit-${unit.id}`}
-                          type="submit"
-                        >
-                          Remover
-                        </button>
-                      </form>
-                      <form action={deleteUnitAction} id={`delete-unit-${unit.id}`}>
-                        <input type="hidden" name="condominiumId" value={condominium.id} />
-                        <input type="hidden" name="unitId" value={unit.id} />
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {!units?.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
-        </div>
-
-        <div className="admin-section">
-          <h2>Nova unidade</h2>
-          <form className="admin-form" action={createUnitAction}>
-            <input type="hidden" name="condominiumId" value={condominium.id} />
-            <label>
-              Bloco
-              <input name="block" placeholder="A" />
-            </label>
-            <label>
-              Número
-              <input name="number" required placeholder="101" />
-            </label>
-            <label>
-              Andar
-              <input name="floor" placeholder="1" />
-            </label>
-            <button type="submit">Adicionar unidade</button>
-          </form>
-        </div>
-      </section>
+      <UnitsManagement condominiumId={condominium.id} query={q} units={units ?? []} />
     </main>
   );
 }
