@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
 import {
@@ -29,9 +28,6 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
             {module.description} Escopo operacional limitado ao condomínio {context.condominium.name}.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       <section className="admin-grid">
@@ -52,6 +48,22 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
             Este módulo esta em fase de fundação operacional. Nenhum CRUD completo, integração real
             de hardware ou automacao externa foi ativado nesta etapa.
           </p>
+          {module.key === "common_areas" ? (
+            <div className="chips">
+              {[
+                "Salao de festas",
+                "Churrasqueira",
+                "Piscina",
+                "Area Pet",
+                "Campo de futebol",
+                "Quadra de Beach Tennis",
+                "Quadra poliesportiva",
+                "Outra"
+              ].map((area) => (
+                <span className="chip" key={area}>{area}</span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
     </main>

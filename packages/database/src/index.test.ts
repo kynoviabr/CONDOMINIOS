@@ -83,6 +83,7 @@ describe("@kynovia/database", () => {
             timezone: "America/Sao_Paulo",
             settings: {},
             operational_rules: {},
+            unit_registration_mode: "vertical",
             visitor_parking_capacity: 12,
             metadata: {},
             created_at: "2026-05-18T00:00:00Z",
@@ -94,6 +95,7 @@ describe("@kynovia/database", () => {
             slug: "residencial-aurora"
           },
           Update: {
+            unit_registration_mode: "horizontal",
             visitor_parking_capacity: 10
           },
           Relationships: []

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { AdminDashboardShell } from "@kynovia/ui";
-import { signOutAction } from "../actions";
+import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
 import { getAllowedOperationalModules } from "../../lib/operations/modules";
@@ -13,19 +12,27 @@ export default async function DashboardPage() {
   const condominium = context?.condominium ?? null;
   const modules = getAllowedOperationalModules(profile.role);
 
+  if (condominium && !condominium.unitRegistrationMode) {
+    redirect("/dashboard/settings?onboarding=unit_structure");
+  }
+
   return (
-    <AdminDashboardShell
-      eyebrow="Condo Admin"
-      title={condominium ? condominium.name : "Administração do condomínio"}
-      description="Portal do administrador do condomínio para gestao operacional do próprio ambiente."
-      profile={profile}
-      signOutAction={signOutAction}
-    >
+    <main className="admin-shell">
+      <header className="admin-header">
+        <div>
+          <p className="eyebrow">Condo Admin</p>
+          <h1>Dashboard operacional</h1>
+          <p className="muted">
+            Visao inicial da administracao do condominio. Use o menu lateral para abrir apenas o
+            modulo operacional desejado.
+          </p>
+        </div>
+      </header>
       {condominium ? (
         <>
           <section className="condo-overview">
             <div className="metric-card">
-              <span>Condomínio</span>
+              <span>Condominio</span>
               <strong>{condominium.name}</strong>
             </div>
             <div className="metric-card">
@@ -42,17 +49,17 @@ export default async function DashboardPage() {
               <Link className="module-card" href={module.href} key={module.key}>
                 <span>{module.title}</span>
                 <strong>{module.description}</strong>
-                {module.phase === "foundation" ? <small>Modulo em fundação</small> : null}
+                {module.phase === "foundation" ? <small>Modulo em fundacao</small> : null}
               </Link>
             ))}
           </section>
         </>
       ) : (
         <p className="form-error">
-          Nenhum condomínio ativo foi encontrado para este perfil. Solicite o vínculo de
+          Nenhum condominio ativo foi encontrado para este perfil. Solicite o vinculo de
           implantacao ao suporte Kynovia.
         </p>
       )}
-    </AdminDashboardShell>
+    </main>
   );
 }

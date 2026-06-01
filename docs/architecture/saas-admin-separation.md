@@ -303,3 +303,32 @@ The first implementation can keep tenant-level checks where the existing schema 
 - Mobile PWA remains focused on resident workflows.
 - RLS and app guards are validated for every migrated workflow.
 - No customer-facing app depends on service role keys.
+
+## Condo Admin Operational UX Structure
+
+The Condo Admin uses a fixed left sidebar and a condominium-scoped main area. The sidebar exposes
+only operational modules for the authenticated condominium context:
+
+- Configuracoes
+- Unidades
+- Moradores
+- Veiculos
+- Portoes e Cancelas
+- Funcionarios
+- Prestadores de Servico
+- Areas Comuns
+- Vagas Visitantes
+
+The top bar must identify the active condominium with a logo/initials mark and the condominium
+name. Condo Admin must not expose Kynovia customer portfolio, SaaS finance, contracts, or any
+multi-condominium selector.
+
+Current schema reuse:
+
+- `condominiums.metadata` stores customer-facing general data such as CNPJ, address, contact
+  fields, and WhatsApp until a dedicated normalized customer profile schema is approved.
+- `condominiums.visitor_parking_capacity` remains the source for total visitor parking capacity.
+- `units`, `residents`, `resident_units`, `resident_vehicles`, and `access_points` remain the
+  operational source tables for existing CRUD foundations.
+- Areas comuns, funcionarios, and prestadores stay in foundation UX state until dedicated schema
+  and RLS are designed.

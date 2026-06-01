@@ -1,13 +1,11 @@
-import Link from "next/link";
-import {
-  updateCondominiumAction,
-  updateOperationalSettingsAction
-} from "../actions";
+import { updateCondominiumAction } from "../actions";
+import { SettingsCondominiumFields } from "./SettingsCondominiumFields";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 
 type SearchParams = Promise<{
+  onboarding?: string;
   status?: string;
 }>;
 
@@ -15,38 +13,54 @@ export const dynamic = "force-dynamic";
 
 function statusMessage(status?: string) {
   if (status === "condominium_updated") {
-    return "Dados do condomínio atualizados.";
+    return "Dados do condominio atualizados.";
   }
 
   if (status === "settings_updated") {
-    return "Configurações operacionais atualizadas.";
+    return "Configuracoes operacionais atualizadas.";
+  }
+
+  if (status === "unit_structure_updated") {
+    return "Tipo de condominio atualizado.";
   }
 
   if (status?.includes("failed") || status?.startsWith("missing")) {
     return null;
   }
 
-  return status ? `Operação concluída: ${status}` : null;
+  return status ? `Operacao concluida: ${status}` : null;
 }
 
 function errorMessage(status?: string) {
   if (status === "missing_condominium_fields") {
-    return "Informe o nome do condomínio.";
+    return "Revise os campos obrigatorios e formatos do condominio.";
+  }
+
+  if (status === "invalid_condominium_fields") {
+    return "Revise CNPJ, CEP, telefone, WhatsApp, e-mail, UF, timezone e tipo de condominio.";
   }
 
   if (status === "missing_condominium_id") {
-    return "Não foi possível identificar o condomínio ativo.";
+    return "Nao foi possivel identificar o condominio ativo.";
+  }
+
+  if (status === "missing_unit_structure") {
+    return "Escolha se o condominio e vertical ou horizontal.";
   }
 
   if (status === "update_condominium_failed") {
-    return "Não foi possível atualizar os dados do condomínio.";
+    return "Nao foi possivel atualizar os dados do condominio.";
   }
 
   if (status === "update_settings_failed") {
-    return "Não foi possível atualizar as configurações operacionais.";
+    return "Nao foi possivel atualizar as configuracoes operacionais.";
   }
 
-  return status?.includes("failed") ? `Não foi possível concluir: ${status}` : null;
+  if (status === "unit_structure_failed") {
+    return "Nao foi possivel salvar o tipo de condominio.";
+  }
+
+  return status?.includes("failed") ? `Nao foi possivel concluir: ${status}` : null;
 }
 
 export default async function SettingsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -57,68 +71,41 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
   const { condominium } = context;
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
+  const showOnboarding = params.onboarding === "unit_structure" && !condominium.unitRegistrationMode;
 
   return (
     <main className="admin-shell">
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Configurações do condomínio</h1>
+          <h1>Configuracoes</h1>
           <p className="muted">
-            Ajustes simples do ambiente operacional do condomínio. Configurações avançadas ficam
+            Ajustes simples do ambiente operacional do condominio. Configuracoes avancadas ficam
             ocultas para reduzir risco e complexidade.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
-
-      <section className="admin-grid">
+      {showOnboarding ? (
+        <section className="onboarding-callout">
+          <strong>Primeira configuracao obrigatoria</strong>
+          <p>
+            Escolha o tipo de condominio para liberar o cadastro de unidades no formato correto.
+          </p>
+        </section>
+      ) : null}
+      <section className="settings-grid settings-grid-single">
         <div className="admin-section">
-          <h2>Dados basicos</h2>
+          <h2>Dados gerais do condominio</h2>
           <p className="muted">
-            Nome e timezone usados nos cadastros, convites e operação da portaria.
+            Nome e timezone usados nos cadastros, convites e operacao da portaria.
           </p>
           <form className="admin-form" action={updateCondominiumAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
-            <label>
-              Nome do condomínio
-              <input name="name" defaultValue={condominium.name} required />
-            </label>
-            <label>
-              Identificador
-              <input value={condominium.slug} readOnly aria-readonly="true" />
-            </label>
-            <label>
-              Timezone
-              <input name="timezone" defaultValue={condominium.timezone} required />
-            </label>
+            <SettingsCondominiumFields condominium={condominium} />
             <button type="submit">Salvar dados</button>
-          </form>
-        </div>
-
-        <div className="admin-section">
-          <h2>Operação</h2>
-          <p className="muted">
-            Parâmetros diários expostos ao administrador do condomínio. Campos técnicos em JSON não
-            aparecem nesta tela.
-          </p>
-          <form className="admin-form" action={updateOperationalSettingsAction}>
-            <input type="hidden" name="condominiumId" value={condominium.id} />
-            <label>
-              Vagas de visitantes
-              <input
-                min="0"
-                name="visitorParkingCapacity"
-                type="number"
-                defaultValue={condominium.visitorParkingCapacity}
-              />
-            </label>
-            <button type="submit">Salvar operação</button>
           </form>
         </div>
       </section>

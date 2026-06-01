@@ -16,11 +16,19 @@ export type AuthorizedCondoOperationalContext = CondoAdminContext & {
 
 export const operationalModules = [
   {
-    description: "Cadastro operacional de apartamentos, casas, blocos e andares.",
+    description: "Dados gerais, contato, endereço e parâmetros operacionais do condomínio.",
+    href: "/dashboard/settings",
+    key: "settings",
+    phase: "available",
+    scope: ["Dados gerais do condomínio", "CNPJ e contatos", "Timezone e vagas visitantes"],
+    title: "Configurações"
+  },
+  {
+    description: "Cadastro operacional de apartamentos, casas, quadras, lotes e blocos.",
     href: "/dashboard/units",
     key: "units",
     phase: "available",
-    scope: ["Criar e manter unidades", "Organizar blocos, numeros e andares"],
+    scope: ["Endereços das unidades", "Blocos, quadras, lotes e números", "Observações em metadata"],
     title: "Unidades"
   },
   {
@@ -32,35 +40,35 @@ export const operationalModules = [
     title: "Moradores"
   },
   {
-    description: "Veiculos de moradores e visitantes autorizados.",
+    description: "Veículos de moradores e visitantes autorizados.",
     href: "/dashboard/vehicles",
     key: "vehicles",
     phase: "foundation",
-    scope: ["Centralizar placas", "Preparar regras de autorizacao", "Apoiar leitura por placa"],
-    title: "Veiculos"
+    scope: ["Centralizar placas", "Preparar regras de autorização", "Apoiar leitura por placa"],
+    title: "Veículos"
   },
   {
-    description: "Pontos de acesso, portoes, cancelas e comandos recentes.",
+    description: "Pontos de acesso, portões, cancelas e comandos recentes.",
     href: "/dashboard/gates",
     key: "gates",
     phase: "available",
     scope: ["Configurar pontos de acesso", "Acompanhar comandos", "Preparar integrações"],
-    title: "Portoes e cancelas"
+    title: "Portões e cancelas"
   },
   {
-    description: "Funcionarios autorizados pelo condomínio.",
+    description: "Funcionários autorizados pelo condomínio.",
     href: "/dashboard/employees",
     key: "employees",
     phase: "foundation",
-    scope: ["Cadastrar funcionarios", "Controlar status", "Preparar vínculo com acessos"],
-    title: "Funcionarios"
+    scope: ["Cadastrar funcionários", "Controlar status", "Preparar vínculo com acessos"],
+    title: "Funcionários"
   },
   {
     description: "Prestadores e fornecedores recorrentes.",
     href: "/dashboard/suppliers",
     key: "suppliers",
     phase: "foundation",
-    scope: ["Organizar prestadores", "Controlar recorrencia", "Preparar regras de entrada"],
+    scope: ["Organizar prestadores", "Controlar recorrência", "Preparar regras de entrada"],
     title: "Prestadores"
   },
   {
@@ -93,23 +101,31 @@ export const operationalModules = [
     key: "occurrences",
     phase: "available",
     scope: ["Registrar ocorrências", "Classificar eventos", "Acompanhar histórico"],
-    title: "Ocorrencias"
+    title: "Ocorrências"
   },
   {
-    description: "Dados basicos, timezone e capacidade de vagas visitantes.",
-    href: "/dashboard/settings",
-    key: "settings",
+    description: "Catálogo das áreas comuns disponíveis para futura reserva e regras de uso.",
+    href: "/dashboard/common-areas",
+    key: "common_areas",
+    phase: "foundation",
+    scope: ["Selecionar áreas padrão", "Registrar área personalizada", "Preparar futuras reservas"],
+    title: "Áreas comuns"
+  },
+  {
+    description: "Capacidade e identificação das vagas destinadas a visitantes.",
+    href: "/dashboard/visitor-parking",
+    key: "visitor_parking",
     phase: "available",
-    scope: ["Ajustar dados basicos", "Configurar vagas", "Evitar JSON exposto"],
-    title: "Configurações do Condomínio"
+    scope: ["Número total de vagas", "Localização das vagas", "Identificação operacional"],
+    title: "Vagas visitantes"
   }
 ] satisfies CondoOperationalModule[];
 
 const allowedModulesByRole: Record<string, string[]> = {
   condominium_admin: operationalModules.map((module) => module.key),
-  doorman_supervisor: ["visitors", "invites", "gates", "doorman", "occurrences"],
+  doorman_supervisor: ["visitors", "invites", "vehicles", "gates", "doorman", "occurrences", "common_areas", "visitor_parking"],
   manager: operationalModules.map((module) => module.key),
-  resident_manager: ["units", "residents", "vehicles", "visitors", "invites"],
+  resident_manager: ["units", "residents", "vehicles", "visitors", "invites", "common_areas", "visitor_parking"],
   syndic: operationalModules.map((module) => module.key)
 };
 

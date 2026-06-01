@@ -42,6 +42,7 @@ export type Database = {
           timezone: string;
           settings: Json;
           operational_rules: Json;
+          unit_registration_mode: string | null;
           visitor_parking_capacity: number;
           metadata: Json;
           created_at: string;
@@ -55,6 +56,7 @@ export type Database = {
           timezone?: string;
           settings?: Json;
           operational_rules?: Json;
+          unit_registration_mode?: string | null;
           visitor_parking_capacity?: number;
           metadata?: Json;
           created_at?: string;
@@ -68,6 +70,7 @@ export type Database = {
           timezone?: string;
           settings?: Json;
           operational_rules?: Json;
+          unit_registration_mode?: string | null;
           visitor_parking_capacity?: number;
           metadata?: Json;
           created_at?: string;

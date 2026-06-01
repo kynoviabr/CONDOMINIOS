@@ -1,8 +1,10 @@
 "use server";
 
 import {
+  isLikelyBrazilianPlate,
   isResidentStatus,
   isResidentUnitRelationship,
+  normalizeBrazilianPlate,
   normalizeNullableText,
   normalizePhone
 } from "@kynovia/database";
@@ -343,4 +345,85 @@ export async function unlinkResidentUnitAction(formData: FormData) {
   }
 
   redirectToResidents("unit_unlinked");
+}
+
+export async function createResidentVehicleAction(formData: FormData) {
+  const condominiumId = formValue(formData, "condominiumId");
+  const residentId = formValue(formData, "residentId");
+  const plate = normalizeBrazilianPlate(formValue(formData, "plate"));
+
+  if (!condominiumId || !residentId || !isLikelyBrazilianPlate(plate)) {
+    failResidents("invalid_vehicle_plate");
+  }
+
+  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const resident = await ensureResidentBelongsToCondominium(supabase, condominiumId, residentId);
+
+  if (!resident) {
+    failResidents("missing_resident_id");
+  }
+
+  const { error } = await supabase.from("resident_vehicles").insert({
+    tenant_id: profile.tenantId,
+    condominium_id: condominiumId,
+    resident_id: residentId,
+    plate,
+    label: normalizeNullableText(formValue(formData, "label"))
+  });
+
+  if (error) {
+    failResidents("create_vehicle_failed");
+  }
+
+  redirectToResidents("vehicle_created");
+}
+
+export async function updateResidentVehicleAction(formData: FormData) {
+  const condominiumId = formValue(formData, "condominiumId");
+  const vehicleId = formValue(formData, "vehicleId");
+  const plate = normalizeBrazilianPlate(formValue(formData, "plate"));
+  const status = formValue(formData, "status");
+
+  if (!condominiumId || !vehicleId || !isLikelyBrazilianPlate(plate) || !isResidentStatus(status)) {
+    failResidents("invalid_vehicle_fields");
+  }
+
+  const { supabase } = await ensureCondominiumAccess(condominiumId);
+  const { error } = await supabase
+    .from("resident_vehicles")
+    .update({
+      label: normalizeNullableText(formValue(formData, "label")),
+      plate,
+      ...statusFields(status, formValue(formData, "blockReason"))
+    })
+    .eq("id", vehicleId)
+    .eq("condominium_id", condominiumId);
+
+  if (error) {
+    failResidents("update_vehicle_failed");
+  }
+
+  redirectToResidents("vehicle_updated");
+}
+
+export async function deleteResidentVehicleAction(formData: FormData) {
+  const condominiumId = formValue(formData, "condominiumId");
+  const vehicleId = formValue(formData, "vehicleId");
+
+  if (!condominiumId || !vehicleId) {
+    failResidents("missing_vehicle_id");
+  }
+
+  const { supabase } = await ensureCondominiumAccess(condominiumId);
+  const { error } = await supabase
+    .from("resident_vehicles")
+    .delete()
+    .eq("id", vehicleId)
+    .eq("condominium_id", condominiumId);
+
+  if (error) {
+    failResidents("delete_vehicle_failed");
+  }
+
+  redirectToResidents("vehicle_deleted");
 }
