@@ -65,6 +65,19 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { currency: "BRL", style: "currency" });
 }
 
+function paymentMethodLabel(method?: string | null) {
+  const labels: Record<string, string> = {
+    bank_transfer: "Transferência bancária",
+    boleto: "Boleto",
+    cash: "Dinheiro",
+    credit_card: "Cartão de crédito",
+    other: "Outro",
+    pix: "PIX"
+  };
+
+  return method ? labels[method] ?? method : "Forma não informada";
+}
+
 export default async function ClientFinancePage({
   params,
   searchParams
@@ -126,27 +139,32 @@ export default async function ClientFinancePage({
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
 
-      <section className="finance-dashboard">
-        <div className="metric-card">
+      <section className="finance-detail-hero">
+        <div className={isBlocked ? "finance-status-card blocked" : "finance-status-card"}>
           <span>Status de acesso</span>
           <strong>{isBlocked ? "Inativo" : "Ativo"}</strong>
+          <small>{isBlocked ? finance.blocked_reason ?? "Cliente com restrição de uso." : "Cliente liberado para uso do sistema."}</small>
         </div>
-        <div className="metric-card">
+        <div className="finance-status-card">
           <span>Status do pagamento</span>
           <strong>{finance.billing_status === "overdue" ? "Atrasado" : "Em dia"}</strong>
+          <small>{finance.billing_status === "overdue" ? "Acompanhar cobrança e bloqueio." : "Sem atraso financeiro registrado."}</small>
         </div>
-        <div className="metric-card">
+        <div className="finance-status-card amount">
           <span>Total recebido</span>
           <strong>{formatCurrency(totalPayments)}</strong>
+          <small>{payments.length} pagamento(s) registrado(s)</small>
         </div>
       </section>
 
-      <section className="admin-grid detail-grid">
-        <div className="admin-section">
-          <h2>Financeiro e bloqueio</h2>
-          <p className="muted">
-            Altere status de acesso, registre pagamentos e defina o canal de cobrança do cliente.
-          </p>
+      <section className="finance-detail-layout">
+        <div className="admin-section finance-control-panel">
+          <div className="finance-section-heading">
+            <div>
+              <h2>Controle financeiro</h2>
+              <p className="muted">Status, cobrança e registro de pagamento em uma rotina única.</p>
+            </div>
+          </div>
           <form className="admin-form" action={updateCondominiumFinanceAction}>
             <input name="condominium_id" type="hidden" value={condominium.id} />
             <FinanceStatusFields
@@ -176,8 +194,8 @@ export default async function ClientFinancePage({
                   <option value="">Não registrar pagamento agora</option>
                   <option value="pix">PIX</option>
                   <option value="boleto">Boleto</option>
-                  <option value="credit_card">Cartao de credito</option>
-                  <option value="bank_transfer">Transferencia bancaria</option>
+                  <option value="credit_card">Cartão de crédito</option>
+                  <option value="bank_transfer">Transferência bancária</option>
                   <option value="cash">Dinheiro</option>
                   <option value="other">Outro</option>
                 </select>
@@ -194,28 +212,38 @@ export default async function ClientFinancePage({
             </div>
             <label>
               Observações financeiras
-              <input name="payment_notes" placeholder="Referencia, vencimento ou detalhe do pagamento" />
+              <input name="payment_notes" placeholder="Referência, vencimento ou detalhe do pagamento" />
             </label>
             <button type="submit">Salvar controle financeiro</button>
           </form>
         </div>
 
-        <div className="admin-section">
-          <h2>Pagamentos registrados</h2>
-          <div className="admin-list">
+        <aside className="admin-section finance-history-panel">
+          <div className="finance-section-heading">
+            <div>
+              <h2>Pagamentos</h2>
+              <p className="muted">Últimos registros do cliente.</p>
+            </div>
+          </div>
+          <div className="finance-payment-list">
             {payments.slice(0, 10).map((payment) => (
-              <div className="admin-list-item" key={payment.id ?? payment.paid_at ?? "payment"}>
+              <div className="finance-payment-item" key={payment.id ?? payment.paid_at ?? "payment"}>
                 <strong>
                   {typeof payment.amount === "number" ? formatCurrency(payment.amount) : "Valor não informado"}
                 </strong>
-                <span>{payment.payment_method ?? "Forma não informada"}</span>
+                <span>{paymentMethodLabel(payment.payment_method)}</span>
                 <small>{payment.paid_at ? new Date(payment.paid_at).toLocaleString("pt-BR") : "Sem data"}</small>
                 {payment.notes ? <small>{payment.notes}</small> : null}
               </div>
             ))}
-            {!payments.length ? <p className="muted">Nenhum pagamento registrado.</p> : null}
+            {!payments.length ? (
+              <div className="finance-empty-state compact">
+                <h3>Nenhum pagamento registrado</h3>
+                <p>Use o formulário ao lado para registrar o primeiro pagamento deste cliente.</p>
+              </div>
+            ) : null}
           </div>
-        </div>
+        </aside>
       </section>
     </KynoviaAdminShell>
   );

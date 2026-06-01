@@ -48,11 +48,34 @@ function statusReason(finance: FinanceSummary) {
   return finance.blocked_reason ?? finance.inactive_reason ?? "Sem motivo informado.";
 }
 
+function financeStatus(client: ClientFinanceSummary) {
+  if (isInactiveClient(client.finance)) {
+    return {
+      label: client.finance.billing_status === "overdue" ? "Atrasado" : "Inativo",
+      tone: "danger"
+    };
+  }
+
+  return {
+    label: "Em dia",
+    tone: "success"
+  };
+}
+
 function paymentTotal(client: ClientFinanceSummary) {
   return (client.finance.payments ?? []).reduce(
     (total, payment) => total + (typeof payment.amount === "number" ? payment.amount : 0),
     0
   );
+}
+
+function lastPaymentDate(client: ClientFinanceSummary) {
+  const dates = (client.finance.payments ?? [])
+    .map((payment) => (payment.paid_at ? new Date(payment.paid_at) : null))
+    .filter((date): date is Date => date !== null && !Number.isNaN(date.getTime()))
+    .sort((current, next) => next.getTime() - current.getTime());
+
+  return dates[0]?.toLocaleDateString("pt-BR") ?? "Sem registro";
 }
 
 function formatCurrency(value: number) {
@@ -86,77 +109,85 @@ export default async function FinanceDashboardPage() {
     >
       {error ? <p className="form-error">Falha ao carregar financeiro dos clientes.</p> : null}
 
-      <section className="finance-dashboard">
-        <div className="metric-card">
-          <span>Total de clientes</span>
-          <strong>{clients.length}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Clientes ativos</span>
-          <strong>{activeClients.length}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Clientes inativos</span>
-          <strong>{inactiveClients.length}</strong>
-        </div>
-        <div className="metric-card">
+      <section className="finance-command-center">
+        <div className="finance-stat primary">
           <span>Total recebido</span>
           <strong>{formatCurrency(totalPayments)}</strong>
         </div>
+        <div className="finance-stat">
+          <span>Clientes</span>
+          <strong>{clients.length}</strong>
+        </div>
+        <div className="finance-stat">
+          <span>Em dia</span>
+          <strong>{activeClients.length}</strong>
+        </div>
+        <div className="finance-stat alert">
+          <span>Atenção</span>
+          <strong>{inactiveClients.length}</strong>
+        </div>
       </section>
 
-      <section className="admin-section finance-chart-section">
-        <h2>Pagamentos registrados por cliente</h2>
-        <div className="finance-bars">
+      <section className="finance-workspace">
+        <div className="finance-workspace-header">
+          <div>
+            <h2>Carteira financeira</h2>
+            <p className="muted">Visão operacional dos clientes, recebimentos e pendências.</p>
+          </div>
+          <Link className="button-link secondary" href="/dashboard/condominiums">
+            Gestão de clientes
+          </Link>
+        </div>
+
+        <div className="finance-table">
+          <div className="finance-table-head" aria-hidden="true">
+            <span>Cliente</span>
+            <span>Status</span>
+            <span>Último pagamento</span>
+            <span>Total recebido</span>
+            <span>Ação</span>
+          </div>
           {clients.map((client) => {
             const total = paymentTotal(client);
+            const status = financeStatus(client);
 
             return (
-              <Link className="finance-bar-row" href={`/dashboard/finance/${client.id}`} key={client.id}>
-                <span>{client.name}</span>
-                <div aria-hidden="true">
-                  <strong style={{ width: `${Math.max((total / maxPaymentTotal) * 100, total > 0 ? 8 : 0)}%` }} />
-                </div>
-                <small>{formatCurrency(total)}</small>
+              <Link className="finance-table-row" href={`/dashboard/finance/${client.id}`} key={client.id}>
+                <span className="finance-client-cell">
+                  <span>{client.name}</span>
+                  <small>{isInactiveClient(client.finance) ? statusReason(client.finance) : "Acesso liberado"}</small>
+                </span>
+                <span className={`status-pill ${status.tone}`}>{status.label}</span>
+                <span>{lastPaymentDate(client)}</span>
+                <span className="finance-amount-cell">
+                  <span>{formatCurrency(total)}</span>
+                  <small aria-hidden="true">
+                    <i style={{ width: `${Math.max((total / maxPaymentTotal) * 100, total > 0 ? 8 : 0)}%` }} />
+                  </small>
+                </span>
+                <span className="finance-action-cell">Abrir</span>
               </Link>
             );
           })}
-          {!clients.length ? <p className="muted">Nenhum cliente cadastrado.</p> : null}
+          {!clients.length ? (
+            <div className="finance-empty-state">
+              <h3>Nenhum cliente cadastrado</h3>
+              <p>Cadastre um cliente para iniciar o acompanhamento financeiro.</p>
+            </div>
+          ) : null}
         </div>
       </section>
 
-      <section className="financial-overview-grid">
-        <div className="admin-section">
-          <h2>Clientes ativos</h2>
-          <div className="admin-list">
-            {activeClients.length ? (
-              activeClients.map((client) => (
-                <Link className="financial-client-link financial-client-link-ok" href={`/dashboard/finance/${client.id}`} key={client.id}>
-                  <strong>{client.name}</strong>
-                  <span>Acesso liberado e pagamento em dia</span>
-                </Link>
-              ))
-            ) : (
-              <p className="muted">Nenhum cliente ativo encontrado.</p>
-            )}
-          </div>
+      <section className="finance-attention-strip">
+        <div>
+          <span>Pendências</span>
+          <strong>{inactiveClients.length ? `${inactiveClients.length} cliente(s) precisam de atenção` : "Nenhuma pendência crítica"}</strong>
         </div>
-
-        <div className="admin-section finance-alert-section">
-          <h2>Clientes inativos</h2>
-          <div className="admin-list">
-            {inactiveClients.length ? (
-              inactiveClients.map((client) => (
-                <Link className="financial-client-link" href={`/dashboard/finance/${client.id}`} key={client.id}>
-                  <strong>{client.name}</strong>
-                  <span>{statusReason(client.finance)}</span>
-                </Link>
-              ))
-            ) : (
-              <p className="muted">Nenhum cliente inativo encontrado.</p>
-            )}
-          </div>
-        </div>
+        <p>
+          {inactiveClients.length
+            ? "Priorize clientes com pagamento atrasado ou acesso inativo para reduzir retrabalho operacional."
+            : "A carteira está sem bloqueios ou atrasos registrados no momento."}
+        </p>
       </section>
     </KynoviaAdminShell>
   );
