@@ -9,7 +9,7 @@ export type AdminProfileSummary = {
 };
 
 export type ShellPanelProps = {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: ReactNode;
   children?: ReactNode;
@@ -26,7 +26,7 @@ export function ShellPanel({
   return (
     <main className={surface === "auth" ? "auth-page" : "app-page"}>
       <section className={surface === "auth" ? "auth-panel" : "app-panel"}>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h1>{title}</h1>
         <p className="muted">{description}</p>
         {children}
@@ -43,7 +43,7 @@ export function ProfileSummary({ profile }: ProfileSummaryProps) {
   return (
     <dl className="profile-list">
       <div>
-        <dt>Usuario</dt>
+        <dt>Usuário</dt>
         <dd>{profile.fullName}</dd>
       </div>
       <div>
@@ -72,19 +72,20 @@ export function AdminDashboardShell({
   title,
   description,
   profile,
-  signOutAction,
   children
 }: AdminDashboardShellProps) {
   return (
-    <ShellPanel eyebrow={eyebrow} title={title} description={description}>
+    <main className="admin-shell">
+      <header className="admin-header">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h1>{title}</h1>
+          <p className="muted">{description}</p>
+        </div>
+      </header>
       <ProfileSummary profile={profile} />
       {children}
-      <form action={signOutAction} className="shell-actions">
-        <button className="secondary" type="submit">
-          Sair
-        </button>
-      </form>
-    </ShellPanel>
+    </main>
   );
 }
 
@@ -107,14 +108,14 @@ export function AccessDeniedShell({
       surface="auth"
     >
       <a className="button-link" href={loginHref}>
-        Trocar usuario
+        Trocar usuário
       </a>
     </ShellPanel>
   );
 }
 
 export type LoginShellProps = {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: ReactNode;
   signInAction: FormAction;
@@ -168,7 +169,7 @@ export function ResetPasswordShell({
     <ShellPanel
       eyebrow="Kynovia Access"
       title="Recuperar senha"
-      description="Informe seu e-mail para receber o link de recuperacao."
+      description="Informe seu e-mail para receber o link de recuperação."
       surface="auth"
     >
       <form action={resetPasswordAction} className="auth-form">
@@ -176,8 +177,8 @@ export function ResetPasswordShell({
           E-mail
           <input name="email" type="email" autoComplete="email" required />
         </label>
-        {hasError ? <p className="form-error">Informe um e-mail valido.</p> : null}
-        {sent ? <p className="form-success">Se o e-mail existir, o link sera enviado.</p> : null}
+        {hasError ? <p className="form-error">Informe um e-mail válido.</p> : null}
+        {sent ? <p className="form-success">Se o e-mail existir, o link será enviado.</p> : null}
         <button type="submit">Enviar link</button>
       </form>
       <a className="text-link" href={loginHref}>

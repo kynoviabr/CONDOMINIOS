@@ -26,7 +26,7 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
           <p className="eyebrow">Condo Admin</p>
           <h1>{module.title}</h1>
           <p className="muted">
-            {module.description} Escopo operacional limitado ao condominio {context.condominium.name}.
+            {module.description} Escopo operacional limitado ao condomínio {context.condominium.name}.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -36,7 +36,7 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Escopo do modulo</h2>
+          <h2>Escopo do módulo</h2>
           <div className="chips">
             {module.scope.map((item) => (
               <span className="chip" key={item}>
@@ -49,7 +49,7 @@ export async function ModulePlaceholderPage({ moduleKey }: ModulePlaceholderPage
         <div className="admin-section">
           <h2>Status</h2>
           <p className="muted">
-            Este modulo esta em fase de fundacao operacional. Nenhum CRUD completo, integracao real
+            Este módulo esta em fase de fundação operacional. Nenhum CRUD completo, integração real
             de hardware ou automacao externa foi ativado nesta etapa.
           </p>
         </div>

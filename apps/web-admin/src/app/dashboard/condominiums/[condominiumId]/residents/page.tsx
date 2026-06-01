@@ -152,15 +152,15 @@ export default async function ResidentsPage({
       <header className="admin-header">
         <div>
           <p className="eyebrow">Moradores e veiculos</p>
-          <h1>{condominium?.name ?? "Condominio"}</h1>
-          <p className="muted">Cadastro de moradores, vinculos com unidades, status e veiculos.</p>
+          <h1>{condominium?.name ?? "Condomínio"}</h1>
+          <p className="muted">Cadastro de moradores, vínculos com unidades, status e veiculos.</p>
         </div>
         <Link className="button-link secondary" href={`/dashboard/condominiums/${condominiumId}`}>
           Voltar
         </Link>
       </header>
 
-      {queryParams.message ? <p className="form-success">Operacao concluida: {queryParams.message}</p> : null}
+      {queryParams.message ? <p className="form-success">Operação concluída: {queryParams.message}</p> : null}
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
@@ -231,7 +231,7 @@ export default async function ResidentsPage({
           <h2>Importacao CSV futura</h2>
           <p className="muted">
             A importacao em massa sera entregue em PR futuro com template validado,
-            pre-visualizacao, isolamento por condominio e auditoria.
+            pre-visualizacao, isolamento por condomínio e auditoria.
           </p>
           <p className="muted">Plano tecnico documentado em docs/implementation/resident-csv-import.md.</p>
         </div>

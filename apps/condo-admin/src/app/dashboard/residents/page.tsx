@@ -94,16 +94,16 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
-    create_resident_failed: "Nao foi possivel cadastrar o morador.",
-    delete_resident_failed: "Nao foi possivel remover o morador.",
-    invalid_unit_scope: "A unidade selecionada nao pertence a este condominio.",
-    link_unit_failed: "Nao foi possivel vincular a unidade.",
-    missing_resident_fields: "Informe os dados obrigatorios do morador.",
-    missing_resident_id: "Nao foi possivel identificar o morador.",
+    create_resident_failed: "Não foi possível cadastrar o morador.",
+    delete_resident_failed: "Não foi possível remover o morador.",
+    invalid_unit_scope: "A unidade selecionada não pertence a este condomínio.",
+    link_unit_failed: "Não foi possível vincular a unidade.",
+    missing_resident_fields: "Informe os dados obrigatórios do morador.",
+    missing_resident_id: "Não foi possível identificar o morador.",
     missing_unit_link_fields: "Informe unidade e relacionamento.",
-    missing_unit_link_id: "Nao foi possivel identificar o vinculo.",
-    unlink_unit_failed: "Nao foi possivel remover o vinculo.",
-    update_resident_failed: "Nao foi possivel atualizar o morador."
+    missing_unit_link_id: "Não foi possível identificar o vínculo.",
+    unlink_unit_failed: "Não foi possível remover o vínculo.",
+    update_resident_failed: "Não foi possível atualizar o morador."
   };
 
   return status ? labels[status] ?? null : null;
@@ -187,7 +187,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <h1>Moradores</h1>
           <p className="muted">
             Cadastro operacional do {condominium.name}, com moradores vinculados as unidades do
-            condominio.
+            condomínio.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -265,14 +265,14 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               <input name="email" type="email" placeholder="morador@example.com" />
             </label>
             <label>
-              Observacoes
-              <textarea name="notes" placeholder="Observacoes internas sobre o morador" />
+              Observações
+              <textarea name="notes" placeholder="Observações internas sobre o morador" />
             </label>
             <div className="form-block muted-block">
               <strong>Foto do morador</strong>
               <p className="field-hint">
                 Upload real sera conectado ao Supabase Storage em PR futuro. Por enquanto, a tela
-                deixa claro que a foto ainda nao sera enviada.
+                deixa claro que a foto ainda não sera enviada.
               </p>
               <input disabled type="file" accept="image/*" />
             </div>
@@ -297,8 +297,8 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
         <div className="admin-section">
           <h2>Escopo desta tela</h2>
           <p className="muted">
-            Esta area permite administrar moradores e vinculos com unidades do condominio ativo.
-            Veiculos, importacao CSV e aprovacoes avancadas seguem em modulos ou PRs proprios.
+            Esta área permite administrar moradores e vínculos com unidades do condomínio ativo.
+            Veiculos, importacao CSV e aprovações avançadas seguem em módulos ou PRs próprios.
           </p>
         </div>
       </section>
@@ -356,7 +356,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                     <input name="blockReason" defaultValue={resident.block_reason ?? ""} />
                   </label>
                   <label>
-                    Observacoes
+                    Observações
                     <textarea name="notes" defaultValue={notes} />
                   </label>
                   <button type="submit">Salvar morador</button>
@@ -410,7 +410,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                     <h3>Resumo do morador</h3>
                     <div className="empty-state">
                       <p>
-                        Historico de acessos e ocorrencias sera exibido aqui quando houver eventos
+                        Historico de acessos e ocorrências sera exibido aqui quando houver eventos
                         operacionais vinculados ao morador.
                       </p>
                       <p className="field-hint">

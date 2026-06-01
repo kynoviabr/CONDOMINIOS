@@ -39,7 +39,7 @@ function resultLabel(value: string | undefined) {
     allowed: "Acesso liberado",
     cancelled: "Convite cancelado",
     expired: "Convite expirado",
-    invalid: "Codigo invalido",
+    invalid: "Codigo inválido",
     not_started: "Convite fora do horario",
     usage_limit_reached: "Limite de uso atingido",
     blacklisted: "Placa bloqueada",
@@ -160,7 +160,7 @@ export default async function InviteValidationPage({ searchParams }: { searchPar
 
       <section className="app-panel operator-panel">
         <h2>Historico recente</h2>
-        {error ? <p className="form-error">Falha ao carregar validacoes.</p> : null}
+        {error ? <p className="form-error">Falha ao carregar validações.</p> : null}
         <div className="list-stack">
           {validations.map((validation) => (
             <article className="list-row" key={validation.id}>

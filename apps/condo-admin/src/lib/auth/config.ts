@@ -5,4 +5,4 @@ export const appName = "Condo Admin";
 export const dashboardPath = "/dashboard";
 export const authenticatedHomePath = dashboardPath;
 export const loginDescription =
-  "Portal administrativo do condominio para gestao operacional do proprio ambiente.";
+  "Portal administrativo do condomínio para gestao operacional do próprio ambiente.";

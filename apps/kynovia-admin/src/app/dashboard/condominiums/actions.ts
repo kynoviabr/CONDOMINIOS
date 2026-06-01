@@ -12,7 +12,8 @@ import {
   isValidEmail,
   isValidPhoneFormat,
   metadataObject,
-  moneyValue
+  moneyValue,
+  normalizePhoneFormat
 } from "../../../lib/customers/metadata";
 import { brazilStates, brazilTimezones } from "./form-options";
 
@@ -27,6 +28,15 @@ function condominiumPath(condominiumId?: string) {
 
 function financePath(condominiumId?: string) {
   return condominiumId ? `/dashboard/finance/${condominiumId}` : "/dashboard/finance";
+}
+
+function usersPath() {
+  return "/dashboard/users";
+}
+
+function safeReturnPath(formData: FormData, fallback: string) {
+  const returnPath = formValue(formData, "return_path");
+  return returnPath.startsWith("/dashboard/users") ? returnPath : fallback;
 }
 
 function isValidBrazilState(value: string) {
@@ -44,8 +54,8 @@ function getClientFields(formData: FormData) {
     legal_name: formValue(formData, "legal_name"),
     trade_name: formValue(formData, "trade_name"),
     email: formValue(formData, "client_email").toLowerCase(),
-    phone: formValue(formData, "client_phone"),
-    whatsapp: formValue(formData, "client_whatsapp"),
+    phone: normalizePhoneFormat(formValue(formData, "client_phone")),
+    whatsapp: normalizePhoneFormat(formValue(formData, "client_whatsapp")),
     cnpj: formValue(formData, "client_cnpj"),
     address: {
       line: formValue(formData, "address_line"),
@@ -57,11 +67,11 @@ function getClientFields(formData: FormData) {
     },
     contact_1: {
       name: formValue(formData, "contact_1_name"),
-      whatsapp: formValue(formData, "contact_1_whatsapp")
+      whatsapp: normalizePhoneFormat(formValue(formData, "contact_1_whatsapp"))
     },
     contact_2: {
       name: formValue(formData, "contact_2_name") || null,
-      whatsapp: formValue(formData, "contact_2_whatsapp") || null
+      whatsapp: normalizePhoneFormat(formValue(formData, "contact_2_whatsapp")) || null
     },
     contract: {
       documents_status: formValue(formData, "contract_documents_status") || "pending",
@@ -108,7 +118,7 @@ function getAdminFields(formData: FormData) {
   return {
     email: formValue(formData, "admin_email").toLowerCase(),
     fullName: formValue(formData, "admin_full_name"),
-    whatsapp: formValue(formData, "admin_whatsapp")
+    whatsapp: normalizePhoneFormat(formValue(formData, "admin_whatsapp"))
   };
 }
 
@@ -359,6 +369,76 @@ export async function createCondominiumAdminFromDetailAction(formData: FormData)
   return createCondominiumAdmin(formData, condominiumPath(condominiumId));
 }
 
+export async function createCondominiumAdminFromUsersAction(formData: FormData) {
+  if (formValue(formData, "access_scope") === "platform_admin") {
+    return createPlatformAdmin(formData, usersPath());
+  }
+
+  return createCondominiumAdmin(formData, usersPath());
+}
+
+async function createPlatformAdmin(formData: FormData, returnPath: string) {
+  const profile = await requireAuthorizedProfile();
+  requirePlatformAdmin(profile.role);
+
+  const fullName = formValue(formData, "full_name") || formValue(formData, "admin_full_name");
+  const email = (formValue(formData, "email") || formValue(formData, "admin_email")).toLowerCase();
+  const whatsapp = normalizePhoneFormat(formValue(formData, "admin_whatsapp"));
+  const temporaryPassword = formValue(formData, "temporary_password") || generatedTemporaryPassword();
+
+  if (!fullName || !email || !whatsapp || !temporaryPassword) {
+    redirect(`${returnPath}?error=missing_admin_fields`);
+  }
+
+  if (!isValidEmail(email) || temporaryPassword.length < 10 || !isValidPhoneFormat(whatsapp)) {
+    redirect(`${returnPath}?error=invalid_admin_credentials`);
+  }
+
+  const authResponse = await serviceRoleRequest("/auth/v1/admin/users", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        whatsapp: whatsapp || null
+      }
+    })
+  });
+
+  if (!authResponse.ok) {
+    redirect(`${returnPath}?error=create_admin_auth_failed`);
+  }
+
+  const authUser = (await authResponse.json()) as { id?: string; user?: { id?: string } };
+  const profileId = authUser.id ?? authUser.user?.id;
+
+  if (!profileId) {
+    redirect(`${returnPath}?error=create_admin_auth_failed`);
+  }
+
+  const profileResponse = await serviceRoleRequest("/rest/v1/profiles?on_conflict=id", {
+    method: "POST",
+    headers: {
+      Prefer: "resolution=merge-duplicates"
+    },
+    body: JSON.stringify({
+      id: profileId,
+      tenant_id: profile.tenantId,
+      full_name: fullName,
+      role: "platform_admin"
+    })
+  });
+
+  if (!profileResponse.ok) {
+    redirect(`${returnPath}?error=create_admin_profile_failed`);
+  }
+
+  revalidatePath(usersPath());
+  redirect(`${returnPath}?status=admin_created`);
+}
+
 async function createCondominiumAdmin(formData: FormData, returnPath: string) {
   const profile = await requireAuthorizedProfile();
   requirePlatformAdmin(profile.role);
@@ -366,7 +446,7 @@ async function createCondominiumAdmin(formData: FormData, returnPath: string) {
   const condominiumId = formValue(formData, "condominium_id");
   const fullName = formValue(formData, "full_name") || formValue(formData, "admin_full_name");
   const email = (formValue(formData, "email") || formValue(formData, "admin_email")).toLowerCase();
-  const whatsapp = formValue(formData, "admin_whatsapp");
+  const whatsapp = normalizePhoneFormat(formValue(formData, "admin_whatsapp"));
   const temporaryPassword = formValue(formData, "temporary_password") || generatedTemporaryPassword();
 
   if (!condominiumId || !fullName || !email || !whatsapp || !temporaryPassword) {
@@ -452,6 +532,7 @@ async function createCondominiumAdmin(formData: FormData, returnPath: string) {
 
   revalidatePath("/dashboard/condominiums");
   revalidatePath("/dashboard/condominiums/new");
+  revalidatePath(usersPath());
   revalidatePath(condominiumPath(condominium.id));
   const emailStatus = await sendClientAccessEmail({
     condominiumName: condominium.name,
@@ -638,18 +719,19 @@ export async function updateCondominiumAdminAction(formData: FormData) {
   requirePlatformAdmin(profile.role);
 
   const condominiumId = formValue(formData, "condominium_id");
+  const returnPath = safeReturnPath(formData, condominiumPath(condominiumId));
   const profileId = formValue(formData, "profile_id");
   const fullName = formValue(formData, "full_name");
   const email = formValue(formData, "email").toLowerCase();
-  const whatsapp = formValue(formData, "admin_whatsapp");
+  const whatsapp = normalizePhoneFormat(formValue(formData, "admin_whatsapp"));
   const password = formValue(formData, "password");
 
   if (!condominiumId || !profileId || !fullName || !email) {
-    redirect(`${condominiumPath(condominiumId)}?error=missing_admin_fields`);
+    redirect(`${returnPath}?error=missing_admin_fields`);
   }
 
   if (!isValidEmail(email) || (whatsapp && !isValidPhoneFormat(whatsapp)) || (password && password.length < 10)) {
-    redirect(`${condominiumPath(condominiumId)}?error=invalid_admin_credentials`);
+    redirect(`${returnPath}?error=invalid_admin_credentials`);
   }
 
   const supabase = await createServerSupabaseClient();
@@ -663,7 +745,7 @@ export async function updateCondominiumAdminAction(formData: FormData) {
     .single();
 
   if (!membership) {
-    redirect(`${condominiumPath(condominiumId)}?error=admin_not_found`);
+    redirect(`${returnPath}?error=admin_not_found`);
   }
 
   const authPayload: {
@@ -688,7 +770,7 @@ export async function updateCondominiumAdminAction(formData: FormData) {
   });
 
   if (!authResponse.ok) {
-    redirect(`${condominiumPath(condominiumId)}?error=update_admin_auth_failed`);
+    redirect(`${returnPath}?error=update_admin_auth_failed`);
   }
 
   const response = await serviceRoleRequest(`/rest/v1/profiles?id=eq.${profileId}`, {
@@ -702,11 +784,135 @@ export async function updateCondominiumAdminAction(formData: FormData) {
   });
 
   if (!response.ok) {
-    redirect(`${condominiumPath(condominiumId)}?error=update_admin_failed`);
+    redirect(`${returnPath}?error=update_admin_failed`);
   }
 
+  revalidatePath(usersPath());
   revalidatePath(condominiumPath(condominiumId));
-  redirect(`${condominiumPath(condominiumId)}?status=admin_updated`);
+  redirect(`${returnPath}?status=admin_updated`);
+}
+
+export async function updatePlatformAdminAction(formData: FormData) {
+  const profile = await requireAuthorizedProfile();
+  requirePlatformAdmin(profile.role);
+
+  const returnPath = safeReturnPath(formData, usersPath());
+  const profileId = formValue(formData, "profile_id");
+  const fullName = formValue(formData, "full_name");
+  const email = formValue(formData, "email").toLowerCase();
+  const whatsapp = normalizePhoneFormat(formValue(formData, "admin_whatsapp"));
+  const password = formValue(formData, "password");
+
+  if (!profileId || !fullName || !email) {
+    redirect(`${returnPath}?error=missing_admin_fields`);
+  }
+
+  if (!isValidEmail(email) || (whatsapp && !isValidPhoneFormat(whatsapp)) || (password && password.length < 10)) {
+    redirect(`${returnPath}?error=invalid_admin_credentials`);
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: targetProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", profileId)
+    .eq("tenant_id", profile.tenantId)
+    .eq("role", "platform_admin")
+    .single();
+
+  if (!targetProfile) {
+    redirect(`${returnPath}?error=admin_not_found`);
+  }
+
+  const authPayload: {
+    email: string;
+    password?: string;
+    user_metadata: { full_name: string; whatsapp: string | null };
+  } = {
+    email,
+    user_metadata: {
+      full_name: fullName,
+      whatsapp: whatsapp || null
+    }
+  };
+
+  if (password) {
+    authPayload.password = password;
+  }
+
+  const authResponse = await serviceRoleRequest(`/auth/v1/admin/users/${profileId}`, {
+    method: "PUT",
+    body: JSON.stringify(authPayload)
+  });
+
+  if (!authResponse.ok) {
+    redirect(`${returnPath}?error=update_admin_auth_failed`);
+  }
+
+  const response = await serviceRoleRequest(`/rest/v1/profiles?id=eq.${profileId}`, {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      full_name: fullName
+    })
+  });
+
+  if (!response.ok) {
+    redirect(`${returnPath}?error=update_admin_failed`);
+  }
+
+  revalidatePath(usersPath());
+  redirect(`${returnPath}?status=admin_updated`);
+}
+
+export async function removePlatformAdminAction(formData: FormData) {
+  const profile = await requireAuthorizedProfile();
+  requirePlatformAdmin(profile.role);
+
+  const returnPath = safeReturnPath(formData, usersPath());
+  const profileId = formValue(formData, "profile_id");
+
+  if (!profileId) {
+    redirect(`${returnPath}?error=missing_admin_fields`);
+  }
+
+  if (profileId === profile.id) {
+    redirect(`${returnPath}?error=self_admin_removal_blocked`);
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: platformAdmins } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("tenant_id", profile.tenantId)
+    .eq("role", "platform_admin");
+
+  if (!platformAdmins?.some((admin) => admin.id === profileId)) {
+    redirect(`${returnPath}?error=admin_not_found`);
+  }
+
+  if (platformAdmins.length <= 1) {
+    redirect(`${returnPath}?error=last_platform_admin_removal_blocked`);
+  }
+
+  const response = await serviceRoleRequest(`/rest/v1/profiles?id=eq.${profileId}`, {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      role: "tenant_admin"
+    })
+  });
+
+  if (!response.ok) {
+    redirect(`${returnPath}?error=remove_admin_failed`);
+  }
+
+  revalidatePath(usersPath());
+  redirect(`${returnPath}?status=admin_removed`);
 }
 
 export async function removeCondominiumAdminAction(formData: FormData) {
@@ -714,10 +920,11 @@ export async function removeCondominiumAdminAction(formData: FormData) {
   requirePlatformAdmin(profile.role);
 
   const condominiumId = formValue(formData, "condominium_id");
+  const returnPath = safeReturnPath(formData, condominiumPath(condominiumId));
   const membershipId = formValue(formData, "membership_id");
 
   if (!condominiumId || !membershipId) {
-    redirect(`${condominiumPath(condominiumId)}?error=missing_admin_fields`);
+    redirect(`${returnPath}?error=missing_admin_fields`);
   }
 
   const supabase = await createServerSupabaseClient();
@@ -729,11 +936,11 @@ export async function removeCondominiumAdminAction(formData: FormData) {
     .eq("role", "condominium_admin");
 
   if (!memberships?.some((membership) => membership.id === membershipId)) {
-    redirect(`${condominiumPath(condominiumId)}?error=admin_not_found`);
+    redirect(`${returnPath}?error=admin_not_found`);
   }
 
   if (memberships.length <= 1) {
-    redirect(`${condominiumPath(condominiumId)}?error=last_admin_removal_blocked`);
+    redirect(`${returnPath}?error=last_admin_removal_blocked`);
   }
 
   const response = await serviceRoleRequest(
@@ -747,9 +954,10 @@ export async function removeCondominiumAdminAction(formData: FormData) {
   );
 
   if (!response.ok) {
-    redirect(`${condominiumPath(condominiumId)}?error=remove_admin_failed`);
+    redirect(`${returnPath}?error=remove_admin_failed`);
   }
 
+  revalidatePath(usersPath());
   revalidatePath(condominiumPath(condominiumId));
-  redirect(`${condominiumPath(condominiumId)}?status=admin_removed`);
+  redirect(`${returnPath}?status=admin_removed`);
 }
