@@ -46,18 +46,18 @@ function statusMessage(status?: string) {
     return "Controle financeiro atualizado.";
   }
 
-  return status ? `Operacao concluida: ${status}` : null;
+  return status ? `Operação concluída: ${status}` : null;
 }
 
 function errorMessage(error?: string) {
   const messages: Record<string, string> = {
-    condominium_not_found: "Condominio nao encontrado.",
+    condominium_not_found: "Condomínio não encontrado.",
     missing_finance_fields: "Informe o status financeiro e de acesso do cliente.",
     missing_payment_fields: "Para registrar pagamento, informe data, hora, valor e forma de pagamento.",
-    update_finance_failed: "Nao foi possivel atualizar o controle financeiro."
+    update_finance_failed: "Não foi possível atualizar o controle financeiro."
   };
 
-  return error ? messages[error] ?? `Nao foi possivel concluir: ${error}` : null;
+  return error ? messages[error] ?? `Não foi possível concluir: ${error}` : null;
 }
 
 function formatCurrency(value: number) {
@@ -85,8 +85,8 @@ export default async function ClientFinancePage({
   if (condominiumError || !condominium) {
     return (
       <main className="admin-shell">
-        <p className="eyebrow">Kynovia Admin</p>
-        <h1>Financeiro nao encontrado</h1>
+        <p className="eyebrow">Kynovia Condo Admin</p>
+        <h1>Financeiro não encontrado</h1>
         <Link className="button-link secondary" href="/dashboard/finance">
           Voltar
         </Link>
@@ -110,7 +110,7 @@ export default async function ClientFinancePage({
         <div>
           <p className="eyebrow">Financeiro Kynovia</p>
           <h1>{condominium.name}</h1>
-          <p className="muted">Controle financeiro, pagamentos, cobrancas e bloqueio de uso do cliente.</p>
+          <p className="muted">Controle financeiro, pagamentos, cobranças e bloqueio de uso do cliente.</p>
         </div>
         <div className="shell-actions">
           <Link className="button-link secondary" href={`/dashboard/condominiums/${condominium.id}`}>
@@ -144,7 +144,7 @@ export default async function ClientFinancePage({
         <div className="admin-section">
           <h2>Financeiro e bloqueio</h2>
           <p className="muted">
-            Altere status de acesso, registre pagamentos e defina o canal de cobranca do cliente.
+            Altere status de acesso, registre pagamentos e defina o canal de cobrança do cliente.
           </p>
           <form className="admin-form" action={updateCondominiumFinanceAction}>
             <input name="condominium_id" type="hidden" value={condominium.id} />
@@ -172,7 +172,7 @@ export default async function ClientFinancePage({
               <label>
                 Forma de pagamento
                 <select name="payment_method" defaultValue="">
-                  <option value="">Nao registrar pagamento agora</option>
+                  <option value="">Não registrar pagamento agora</option>
                   <option value="pix">PIX</option>
                   <option value="boleto">Boleto</option>
                   <option value="credit_card">Cartao de credito</option>
@@ -182,9 +182,9 @@ export default async function ClientFinancePage({
                 </select>
               </label>
               <label>
-                Envio de cobranca
+                Envio de cobrança
                 <select name="charge_channel" defaultValue={finance.charge_channel ?? ""}>
-                  <option value="">Nao enviar agora</option>
+                  <option value="">Não enviar agora</option>
                   <option value="email">E-mail</option>
                   <option value="whatsapp">WhatsApp</option>
                   <option value="email_whatsapp">E-mail e WhatsApp</option>
@@ -192,7 +192,7 @@ export default async function ClientFinancePage({
               </label>
             </div>
             <label>
-              Observacoes financeiras
+              Observações financeiras
               <input name="payment_notes" placeholder="Referencia, vencimento ou detalhe do pagamento" />
             </label>
             <button type="submit">Salvar controle financeiro</button>
@@ -205,9 +205,9 @@ export default async function ClientFinancePage({
             {payments.slice(0, 10).map((payment) => (
               <div className="admin-list-item" key={payment.id ?? payment.paid_at ?? "payment"}>
                 <strong>
-                  {typeof payment.amount === "number" ? formatCurrency(payment.amount) : "Valor nao informado"}
+                  {typeof payment.amount === "number" ? formatCurrency(payment.amount) : "Valor não informado"}
                 </strong>
-                <span>{payment.payment_method ?? "Forma nao informada"}</span>
+                <span>{payment.payment_method ?? "Forma não informada"}</span>
                 <small>{payment.paid_at ? new Date(payment.paid_at).toLocaleString("pt-BR") : "Sem data"}</small>
                 {payment.notes ? <small>{payment.notes}</small> : null}
               </div>

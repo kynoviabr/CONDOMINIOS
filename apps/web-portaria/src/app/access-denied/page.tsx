@@ -4,9 +4,9 @@ export default function AccessDeniedPage() {
       <section className="auth-panel">
         <p className="eyebrow">Kynovia Access</p>
         <h1>Acesso negado</h1>
-        <p className="muted">Seu perfil nao possui permissao para acessar esta area.</p>
+        <p className="muted">Seu perfil não possui permissão para acessar esta área.</p>
         <a className="button-link" href="/login">
-          Trocar usuario
+          Trocar usuário
         </a>
       </section>
     </main>

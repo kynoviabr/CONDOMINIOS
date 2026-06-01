@@ -13,7 +13,7 @@ function getErrorMessage(error?: string | string[]) {
 
   return error === "missing_credentials"
     ? "Informe e-mail e senha para continuar."
-    : "Nao foi possivel entrar com essas credenciais.";
+    : "Não foi possível entrar com essas credenciais.";
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -22,7 +22,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <LoginShell
-      eyebrow="Kynovia Access"
       title={appName}
       description={loginDescription}
       signInAction={signInAction}

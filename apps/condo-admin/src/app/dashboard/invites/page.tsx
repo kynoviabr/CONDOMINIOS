@@ -82,10 +82,10 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
-    blacklist_disable_failed: "Nao foi possivel desativar a placa.",
-    blacklist_save_failed: "Nao foi possivel salvar a placa.",
+    blacklist_disable_failed: "Não foi possível desativar a placa.",
+    blacklist_save_failed: "Não foi possível salvar a placa.",
     invalid_plate: "Informe uma placa brasileira valida.",
-    missing_blacklist_id: "Nao foi possivel identificar o item da blacklist."
+    missing_blacklist_id: "Não foi possível identificar o item da blacklist."
   };
 
   return status ? labels[status] ?? null : null;
@@ -157,7 +157,7 @@ export default async function CondominiumInvitesPage({
           <p className="eyebrow">Condo Admin</p>
           <h1>Convites e placas</h1>
           <p className="muted">
-            Historico de convites, validacoes, vagas visitantes e blacklist de placas do{" "}
+            Historico de convites, validações, vagas visitantes e blacklist de placas do{" "}
             {condominium.name}.
           </p>
         </div>
@@ -169,7 +169,7 @@ export default async function CondominiumInvitesPage({
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
       {invitesError ? <p className="form-error">Falha ao carregar convites.</p> : null}
-      {validationsError ? <p className="form-error">Falha ao carregar validacoes.</p> : null}
+      {validationsError ? <p className="form-error">Falha ao carregar validações.</p> : null}
 
       <section className="admin-grid">
         <div className="admin-section">
@@ -263,7 +263,7 @@ export default async function CondominiumInvitesPage({
       </section>
 
       <section className="admin-section">
-        <h2>Validacoes recentes</h2>
+        <h2>Validações recentes</h2>
         <div className="list-stack">
           {validations.map((validation) => (
             <article className="list-row" key={validation.id}>
@@ -278,7 +278,7 @@ export default async function CondominiumInvitesPage({
             </article>
           ))}
         </div>
-        {!validations.length ? <p className="muted">Nenhuma validacao encontrada.</p> : null}
+        {!validations.length ? <p className="muted">Nenhuma validação encontrada.</p> : null}
       </section>
     </main>
   );

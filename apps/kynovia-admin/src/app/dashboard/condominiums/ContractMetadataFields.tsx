@@ -18,7 +18,7 @@ export function ContractMetadataFields({
     <>
       <div className="form-row split-row">
         <label>
-          <RequiredLabel>Numero do contrato</RequiredLabel>
+          <RequiredLabel>Número do contrato</RequiredLabel>
           <input name="contract_number" required defaultValue={number} />
         </label>
         <label>
@@ -42,7 +42,7 @@ export function ContractMetadataFields({
           <select name="contract_documents_status" defaultValue={documentsStatus}>
             <option value="pending">Placeholder seguro: documentos pendentes</option>
             <option value="received">Documentos recebidos fora do sistema</option>
-            <option value="not_required">Nao aplicavel nesta etapa</option>
+            <option value="not_required">Não aplicavel nesta etapa</option>
           </select>
         </label>
       </div>

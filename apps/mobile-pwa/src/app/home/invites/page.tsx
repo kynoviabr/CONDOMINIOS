@@ -117,17 +117,17 @@ function statusMessage(status: string | undefined) {
 
 function errorMessage(error: string | undefined) {
   const messages: Record<string, string> = {
-    approval_update_failed: "Nao foi possivel atualizar a aprovacao.",
-    cancel_invite_failed: "Nao foi possivel cancelar o convite.",
-    create_favorite_failed: "Nao foi possivel salvar o favorito.",
-    create_invite_failed: "Nao foi possivel criar o convite.",
-    invalid_approval_decision: "Decisao de aprovacao invalida.",
+    approval_update_failed: "Não foi possível atualizar a aprovação.",
+    cancel_invite_failed: "Não foi possível cancelar o convite.",
+    create_favorite_failed: "Não foi possível salvar o favorito.",
+    create_invite_failed: "Não foi possível criar o convite.",
+    invalid_approval_decision: "Decisao de aprovação invalida.",
     invalid_invite_window: "A validade precisa ser posterior ao inicio.",
     invalid_plate: "Placa invalida.",
     missing_favorite_fields: "Informe unidade e nome para salvar favorito.",
-    missing_invite_fields: "Informe os dados obrigatorios do convite.",
-    resident_not_active: "Morador inativo ou nao encontrado.",
-    unit_not_allowed: "Unidade nao permitida para este morador."
+    missing_invite_fields: "Informe os dados obrigatórios do convite.",
+    resident_not_active: "Morador inativo ou não encontrado.",
+    unit_not_allowed: "Unidade não permitida para este morador."
   };
 
   return error ? messages[error] ?? error : null;
@@ -224,7 +224,7 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
         <div>
           <p className="eyebrow">App do morador</p>
           <h1>Convites e acessos</h1>
-          <p className="muted">Crie convites, aprove visitantes pendentes e acompanhe historico recente.</p>
+          <p className="muted">Crie convites, aprove visitantes pendentes e acompanhe histórico recente.</p>
         </div>
         <Link className="button-link secondary" href="/home">
           Inicio
@@ -233,7 +233,7 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
-      {!resident ? <p className="form-error">Seu perfil ainda nao esta vinculado a um morador ativo.</p> : null}
+      {!resident ? <p className="form-error">Seu perfil ainda não esta vinculado a um morador ativo.</p> : null}
       {resident && resident.status !== "active" ? (
         <p className="form-error">Convites disponiveis apenas para moradores ativos.</p>
       ) : null}
@@ -247,7 +247,7 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
       ) : null}
 
       <section className="app-panel" id="pendentes">
-        <h2>Aprovacoes pendentes</h2>
+        <h2>Aprovações pendentes</h2>
         <div className="list-stack">
           {approvals.map((approval) => (
             <article className="list-row approval-row" key={approval.id}>
@@ -279,7 +279,7 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
               ) : null}
             </article>
           ))}
-          {approvals.length === 0 ? <p className="muted compact">Nenhum visitante pendente de aprovacao.</p> : null}
+          {approvals.length === 0 ? <p className="muted compact">Nenhum visitante pendente de aprovação.</p> : null}
         </div>
       </section>
 

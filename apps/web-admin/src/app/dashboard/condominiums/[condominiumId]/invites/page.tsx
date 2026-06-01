@@ -139,8 +139,8 @@ export default async function CondominiumInvitesPage({
       <header className="admin-header">
         <div>
           <p className="eyebrow">Convites digitais</p>
-          <h1>{condominium?.name ?? "Condominio"}</h1>
-          <p className="muted">Historico de convites, validade, limites de uso e validacoes da portaria.</p>
+          <h1>{condominium?.name ?? "Condomínio"}</h1>
+          <p className="muted">Historico de convites, validade, limites de uso e validações da portaria.</p>
         </div>
         <Link className="button-link secondary" href={`/dashboard/condominiums/${condominiumId}`}>
           Voltar
@@ -148,8 +148,8 @@ export default async function CondominiumInvitesPage({
       </header>
 
       {invitesError ? <p className="form-error">Falha ao carregar convites.</p> : null}
-      {validationsError ? <p className="form-error">Falha ao carregar validacoes.</p> : null}
-      {queryParams.status ? <p className="form-success">Operacao concluida: {queryParams.status}</p> : null}
+      {validationsError ? <p className="form-error">Falha ao carregar validações.</p> : null}
+      {queryParams.status ? <p className="form-success">Operação concluída: {queryParams.status}</p> : null}
 
       <section className="admin-grid two-columns">
         <div className="admin-section">
@@ -241,7 +241,7 @@ export default async function CondominiumInvitesPage({
       </section>
 
       <section className="admin-section">
-        <h2>Validacoes recentes</h2>
+        <h2>Validações recentes</h2>
         <div className="list-stack">
           {validations.map((validation) => (
             <article className="list-row" key={validation.id}>

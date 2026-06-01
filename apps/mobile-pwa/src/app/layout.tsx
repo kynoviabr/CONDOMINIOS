@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "../../../../design-system.css";
 
 export const metadata: Metadata = {
   title: "Kynovia Mobile",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e"
+  themeColor: "#635bff"
 };
 
 export default function RootLayout({

@@ -43,10 +43,10 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
     <main className="admin-shell">
       <header className="admin-header">
         <div>
-          <p className="eyebrow">Gestao administrativa</p>
-          <h1>Condominios</h1>
+          <p className="eyebrow">Gestão administrativa</p>
+          <h1>Condomínios</h1>
           <p className="muted">
-            Cadastro, configuracoes, unidades, portoes e filtros por tenant.
+            Cadastro, configurações, unidades, portoes e filtros por tenant.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -54,9 +54,9 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
         </Link>
       </header>
 
-      {params.status ? <p className="form-success">Operacao concluida: {params.status}</p> : null}
-      {params.error ? <p className="form-error">Nao foi possivel concluir: {params.error}</p> : null}
-      {error ? <p className="form-error">Falha ao carregar condominios.</p> : null}
+      {params.status ? <p className="form-success">Operação concluída: {params.status}</p> : null}
+      {params.error ? <p className="form-error">Não foi possível concluir: {params.error}</p> : null}
+      {error ? <p className="form-error">Falha ao carregar condomínios.</p> : null}
 
       <section className="toolbar">
         <form className="filter-form">
@@ -77,7 +77,7 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Condominios cadastrados</h2>
+          <h2>Condomínios cadastrados</h2>
           <div className="table-wrap">
             <table>
               <thead>
@@ -86,7 +86,7 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
                   <th>Slug</th>
                   <th>Timezone</th>
                   <th>Vagas visitantes</th>
-                  <th>Acoes</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,11 +106,11 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
               </tbody>
             </table>
           </div>
-          {!condominiums?.length ? <p className="muted">Nenhum condominio encontrado.</p> : null}
+          {!condominiums?.length ? <p className="muted">Nenhum condomínio encontrado.</p> : null}
         </div>
 
         <div className="admin-section">
-          <h2>Novo condominio</h2>
+          <h2>Novo condomínio</h2>
           {canCreateCondominium(profile.role) ? (
             <form className="admin-form" action={createCondominiumAction}>
               <label>
@@ -125,10 +125,10 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
                 Timezone
                 <input name="timezone" defaultValue="America/Sao_Paulo" />
               </label>
-              <button type="submit">Criar condominio</button>
+              <button type="submit">Criar condomínio</button>
             </form>
           ) : (
-            <p className="muted">Seu perfil pode consultar condominios, mas nao criar novos registros.</p>
+            <p className="muted">Seu perfil pode consultar condomínios, mas não criar novos registros.</p>
           )}
         </div>
       </section>

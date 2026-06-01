@@ -5,7 +5,7 @@ import { kynoviaAdminNavigation } from "../../../lib/customers/metadata";
 import type { AuthProfile } from "@kynovia/auth";
 
 type KynoviaAdminShellProps = {
-  active: "customers" | "dashboard";
+  active: "customers" | "dashboard" | "users";
   children: ReactNode;
   description: string;
   profile: AuthProfile;
@@ -25,7 +25,7 @@ export function KynoviaAdminShell({
         <div className="brand-block">
           <span>KA</span>
           <div>
-            <strong>Kynovia Admin</strong>
+            <strong>Kynovia Condo Admin</strong>
             <small>Backoffice interno</small>
           </div>
         </div>
@@ -42,23 +42,30 @@ export function KynoviaAdminShell({
             </Link>
           ))}
         </nav>
+
+        <div className="sidebar-footer">
+          <div>
+            <span>{profile.fullName}</span>
+            <small>{profile.role}</small>
+          </div>
+          <form action={signOutAction}>
+            <button className="secondary" type="submit">
+              Sair
+            </button>
+          </form>
+        </div>
       </aside>
 
       <div className="saas-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Kynovia Admin</p>
+            <p className="eyebrow">Kynovia Condo Admin</p>
             <h1>{title}</h1>
             <p className="muted">{description}</p>
           </div>
           <div className="topbar-profile">
             <span>{profile.fullName}</span>
             <small>{profile.role}</small>
-            <form action={signOutAction}>
-              <button className="secondary" type="submit">
-                Sair
-              </button>
-            </form>
           </div>
         </header>
         {children}

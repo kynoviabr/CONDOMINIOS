@@ -13,6 +13,10 @@ describe("condo-admin operational modules", () => {
       "gates",
       "employees",
       "suppliers",
+      "visitors",
+      "invites",
+      "doorman",
+      "occurrences",
       "common_areas",
       "visitor_parking"
     ]);
