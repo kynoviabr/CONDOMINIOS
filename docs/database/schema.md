@@ -79,6 +79,9 @@ This supports tenant-wide administration and condominium-level isolation.
 
 - Residents are scoped by `tenant_id` and `condominium_id`.
 - Resident status must be `active`, `inactive`, or `blocked`.
+- Condo Admin stores CPF in `residents.document` and uses `residents.metadata` for customer-facing
+  operational details that do not yet need dedicated columns, such as birth date, WhatsApp,
+  observations, and prepared photo-upload state.
 - Blocked residents and resident vehicles may carry a block reason and timestamp.
 - Resident vehicles are normalized by plate before write and remain unique per condominium.
 - Resident-unit links are stored in `resident_units` and support primary unit markers.

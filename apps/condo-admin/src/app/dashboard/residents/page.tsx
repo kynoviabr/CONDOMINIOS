@@ -15,7 +15,7 @@ import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
-type SearchParams = Promise<{ q?: string; status?: string }>;
+type SearchParams = Promise<{ q?: string; status?: string; unitId?: string }>;
 
 type Resident = {
   block_reason: string | null;
@@ -23,6 +23,7 @@ type Resident = {
   email: string | null;
   full_name: string;
   id: string;
+  metadata: unknown;
   phone: string | null;
   status: string;
 };
@@ -114,6 +115,17 @@ function UnitStructurePreview({
   );
 }
 
+function residentMetadata(resident: Resident) {
+  return resident.metadata && typeof resident.metadata === "object" && !Array.isArray(resident.metadata)
+    ? (resident.metadata as Record<string, unknown>)
+    : {};
+}
+
+function residentMetadataValue(resident: Resident, key: string) {
+  const value = residentMetadata(resident)[key];
+  return typeof value === "string" ? value : "";
+}
+
 function optionLabel(value: string) {
   const labels: Record<string, string> = {
     active: "Ativo",
@@ -150,7 +162,10 @@ function statusMessage(status?: string) {
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
     create_resident_failed: "Nao foi possivel cadastrar o morador.",
+    create_vehicle_failed: "Nao foi possivel cadastrar o veiculo.",
     delete_resident_failed: "Nao foi possivel remover o morador.",
+    delete_vehicle_failed: "Nao foi possivel remover o veiculo.",
+    invalid_unit_scope: "A unidade selecionada nao pertence a este condominio.",
     invalid_vehicle_fields: "Revise placa e status do veiculo.",
     invalid_vehicle_plate: "Informe uma placa brasileira valida.",
     link_unit_failed: "Nao foi possivel vincular a unidade.",
@@ -161,9 +176,7 @@ function errorMessage(status?: string) {
     missing_vehicle_id: "Nao foi possivel identificar o veiculo.",
     unlink_unit_failed: "Nao foi possivel remover o vinculo.",
     update_resident_failed: "Nao foi possivel atualizar o morador.",
-    update_vehicle_failed: "Nao foi possivel atualizar o veiculo.",
-    create_vehicle_failed: "Nao foi possivel cadastrar o veiculo.",
-    delete_vehicle_failed: "Nao foi possivel remover o veiculo."
+    update_vehicle_failed: "Nao foi possivel atualizar o veiculo."
   };
 
   return status ? labels[status] ?? null : null;
@@ -180,17 +193,38 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
   const searchTerm = queryParams.q?.trim() ?? "";
   const safeSearchTerm = sanitizeSearch(searchTerm);
   const statusFilter = queryParams.status?.trim() ?? "";
+  const selectedUnitId = queryParams.unitId?.trim() ?? "";
   const supabase = await createServerSupabaseClient();
+
+  const { data: unitsData, error: unitsError } = await supabase
+    .from("units")
+    .select("id, block, number, floor, metadata")
+    .eq("condominium_id", condominium.id)
+    .order("block", { ascending: true })
+    .order("number", { ascending: true });
+  const units = (unitsData ?? []) as Unit[];
+  const unitIds = new Set(units.map((unit) => unit.id));
+  const validSelectedUnitId = selectedUnitId && unitIds.has(selectedUnitId) ? selectedUnitId : "";
+  const residentIdsByUnit = validSelectedUnitId
+    ? await supabase
+        .from("resident_units")
+        .select("resident_id")
+        .eq("condominium_id", condominium.id)
+        .eq("unit_id", validSelectedUnitId)
+    : { data: null, error: null };
+  const filteredResidentIds =
+    residentIdsByUnit.data?.map((link) => link.resident_id).filter(Boolean) ?? [];
 
   let residentsQuery = supabase
     .from("residents")
-    .select("id, full_name, document, phone, email, status, block_reason")
+    .select("id, full_name, document, phone, email, status, block_reason, metadata")
     .eq("condominium_id", condominium.id)
     .order("full_name", { ascending: true });
 
   if (safeSearchTerm) {
+    const digitSearchTerm = safeSearchTerm.replace(/\D/g, "");
     residentsQuery = residentsQuery.or(
-      `full_name.ilike.%${safeSearchTerm}%,document.ilike.%${safeSearchTerm}%,phone.ilike.%${safeSearchTerm}%`
+      `full_name.ilike.%${safeSearchTerm}%,document.ilike.%${digitSearchTerm || safeSearchTerm}%,phone.ilike.%${digitSearchTerm || safeSearchTerm}%,email.ilike.%${safeSearchTerm}%`
     );
   }
 
@@ -198,31 +232,26 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
     residentsQuery = residentsQuery.eq("status", statusFilter);
   }
 
-  const [
-    { data: residentsData, error: residentsError },
-    { data: unitsData, error: unitsError }
-  ] = await Promise.all([
-    residentsQuery,
-    supabase
-      .from("units")
-      .select("id, block, number, floor, metadata")
-      .eq("condominium_id", condominium.id)
-      .order("block", { ascending: true })
-      .order("number", { ascending: true })
-  ]);
+  if (validSelectedUnitId) {
+    residentsQuery = filteredResidentIds.length
+      ? residentsQuery.in("id", filteredResidentIds)
+      : residentsQuery.eq("id", "00000000-0000-0000-0000-000000000000");
+  }
 
+  const { data: residentsData, error: residentsError } = await residentsQuery;
   const residents = (residentsData ?? []) as Resident[];
-  const units = (unitsData ?? []) as Unit[];
   const residentIds = residents.map((resident) => resident.id);
   const [{ data: residentUnitsData }, { data: vehiclesData }] = residentIds.length
     ? await Promise.all([
         supabase
           .from("resident_units")
           .select("id, resident_id, unit_id, relationship, is_primary")
+          .eq("condominium_id", condominium.id)
           .in("resident_id", residentIds),
         supabase
           .from("resident_vehicles")
           .select("id, resident_id, plate, label, status, block_reason")
+          .eq("condominium_id", condominium.id)
           .in("resident_id", residentIds)
           .order("plate", { ascending: true })
       ])
@@ -239,10 +268,10 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Moradores e veiculos</h1>
+          <h1>Moradores</h1>
           <p className="muted">
-            Cadastro operacional do {condominium.name}, incluindo vinculos com unidades e placas
-            dos moradores.
+            Cadastro operacional do {condominium.name}, com moradores vinculados as unidades do
+            condominio.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -271,7 +300,18 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
         <form className="filter-form">
           <label>
             Buscar
-            <input name="q" placeholder="Nome, documento ou telefone" defaultValue={searchTerm} />
+            <input name="q" placeholder="Nome, CPF, telefone ou e-mail" defaultValue={searchTerm} />
+          </label>
+          <label>
+            Unidade
+            <select name="unitId" defaultValue={validSelectedUnitId}>
+              <option value="">Todas as unidades</option>
+              {units.map((unit) => (
+                <option key={unit.id} value={unit.id}>
+                  {unitLabel(unit, configuredUnitMode)}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Status
@@ -338,17 +378,37 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               <input name="fullName" required placeholder="Maria Silva" />
             </label>
             <label>
-              Documento
-              <input name="document" placeholder="CPF ou documento interno" />
+              CPF
+              <input name="document" required placeholder="000.000.000-00" />
+            </label>
+            <label>
+              Data de nascimento
+              <input name="birthDate" type="date" />
             </label>
             <label>
               Telefone
-              <input name="phone" placeholder="11999990000" />
+              <input name="phone" placeholder="(11) 99999-0000" />
+            </label>
+            <label>
+              WhatsApp
+              <input name="whatsapp" placeholder="(11) 99999-0000" />
             </label>
             <label>
               E-mail
               <input name="email" type="email" placeholder="morador@example.com" />
             </label>
+            <label>
+              Observacoes
+              <textarea name="notes" placeholder="Observacoes internas sobre o morador" />
+            </label>
+            <div className="form-block muted-block">
+              <strong>Foto do morador</strong>
+              <p className="field-hint">
+                Upload real sera conectado ao Supabase Storage em PR futuro. Por enquanto, a tela
+                deixa claro que a foto ainda nao sera enviada.
+              </p>
+              <input disabled type="file" accept="image/*" />
+            </div>
             <label>
               Status
               <select name="status" defaultValue="active">
@@ -370,8 +430,8 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
         <div className="admin-section">
           <h2>Escopo desta tela</h2>
           <p className="muted">
-            Esta area permite administrar moradores, vinculos com unidades e veiculos do condominio
-            ativo. Importacao CSV e aprovacoes avancadas seguem em PRs futuros.
+            Esta area permite administrar moradores e vinculos com unidades do condominio ativo.
+            Veiculos, importacao CSV e aprovacoes avancadas seguem em modulos ou PRs proprios.
           </p>
         </div>
       </section>
@@ -382,6 +442,9 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           {residents.map((resident) => {
             const links = residentUnits.filter((link) => link.resident_id === resident.id);
             const residentVehicles = vehicles.filter((vehicle) => vehicle.resident_id === resident.id);
+            const birthDate = residentMetadataValue(resident, "birthDate");
+            const notes = residentMetadataValue(resident, "notes");
+            const whatsapp = residentMetadataValue(resident, "whatsapp");
 
             return (
               <article className="management-record" key={resident.id}>
@@ -393,12 +456,20 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                     <input name="fullName" required defaultValue={resident.full_name} />
                   </label>
                   <label>
-                    Documento
-                    <input name="document" defaultValue={resident.document ?? ""} />
+                    CPF
+                    <input name="document" required defaultValue={resident.document ?? ""} />
+                  </label>
+                  <label>
+                    Data de nascimento
+                    <input name="birthDate" type="date" defaultValue={birthDate} />
                   </label>
                   <label>
                     Telefone
                     <input name="phone" defaultValue={resident.phone ?? ""} />
+                  </label>
+                  <label>
+                    WhatsApp
+                    <input name="whatsapp" defaultValue={whatsapp} />
                   </label>
                   <label>
                     E-mail
@@ -417,6 +488,10 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                   <label>
                     Motivo bloqueio
                     <input name="blockReason" defaultValue={resident.block_reason ?? ""} />
+                  </label>
+                  <label>
+                    Observacoes
+                    <textarea name="notes" defaultValue={notes} />
                   </label>
                   <button type="submit">Salvar morador</button>
                 </form>
@@ -544,6 +619,12 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                           </form>
                         </div>
                       ))}
+                      {residentVehicles.length === 0 ? (
+                        <p className="field-hint">
+                          Nenhum veiculo vinculado. Foto preparada: upload real depende de Supabase
+                          Storage em PR futuro.
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 </div>

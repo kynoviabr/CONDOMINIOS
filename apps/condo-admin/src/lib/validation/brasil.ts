@@ -12,6 +12,14 @@ export function formatCnpj(value: string) {
     .replace(/(\d{4})(\d)/, "$1-$2");
 }
 
+export function formatCpf(value: string) {
+  return onlyDigits(value)
+    .slice(0, 11)
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+}
+
 export function formatCep(value: string) {
   return onlyDigits(value)
     .slice(0, 8)
@@ -30,6 +38,27 @@ export function formatPhone(value: string) {
   }
 
   return digits.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+}
+
+export function isValidCpf(value: string) {
+  const digits = onlyDigits(value);
+
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) {
+    return false;
+  }
+
+  const calculateDigit = (base: string, factor: number) => {
+    const sum = base
+      .split("")
+      .reduce((total, digit, index) => total + Number(digit) * (factor - index), 0);
+    const remainder = (sum * 10) % 11;
+    return remainder === 10 ? 0 : remainder;
+  };
+
+  const firstDigit = calculateDigit(digits.slice(0, 9), 10);
+  const secondDigit = calculateDigit(digits.slice(0, 10), 11);
+
+  return firstDigit === Number(digits[9]) && secondDigit === Number(digits[10]);
 }
 
 export function isValidCnpj(value: string) {
@@ -61,4 +90,9 @@ export function isValidEmail(value: string) {
 
 export function isValidPhoneFormat(value: string) {
   return /^\(\d{2}\) \d{5}-\d{4}$/.test(value);
+}
+
+export function isValidBrazilianPhoneDigits(value: string) {
+  const digits = onlyDigits(value);
+  return digits.length === 10 || digits.length === 11;
 }
