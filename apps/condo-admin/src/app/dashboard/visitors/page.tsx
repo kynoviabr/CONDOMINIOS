@@ -82,17 +82,17 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   const labels: Record<string, string> = {
-    create_visit_failed: "Nao foi possivel registrar a visita.",
-    create_visitor_failed: "Nao foi possivel cadastrar o visitante.",
-    create_visitor_vehicle_failed: "Nao foi possivel associar a placa.",
-    delete_visitor_failed: "Nao foi possivel remover o visitante.",
-    delete_visitor_vehicle_failed: "Nao foi possivel remover a placa.",
+    create_visit_failed: "Não foi possível registrar a visita.",
+    create_visitor_failed: "Não foi possível cadastrar o visitante.",
+    create_visitor_vehicle_failed: "Não foi possível associar a placa.",
+    delete_visitor_failed: "Não foi possível remover o visitante.",
+    delete_visitor_vehicle_failed: "Não foi possível remover a placa.",
     invalid_visitor_vehicle_plate: "Informe uma placa brasileira valida.",
     missing_visit_fields: "Informe visitante e unidade.",
-    missing_visitor_fields: "Informe os dados obrigatorios do visitante.",
-    missing_visitor_id: "Nao foi possivel identificar o visitante.",
-    missing_visitor_vehicle_id: "Nao foi possivel identificar a placa.",
-    update_visitor_failed: "Nao foi possivel atualizar o visitante."
+    missing_visitor_fields: "Informe os dados obrigatórios do visitante.",
+    missing_visitor_id: "Não foi possível identificar o visitante.",
+    missing_visitor_vehicle_id: "Não foi possível identificar a placa.",
+    update_visitor_failed: "Não foi possível atualizar o visitante."
   };
 
   return status ? labels[status] ?? null : null;
@@ -168,7 +168,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
           <p className="eyebrow">Condo Admin</p>
           <h1>Visitantes</h1>
           <p className="muted">
-            Cadastro basico de visitantes, placas associadas e historico por unidade do{" "}
+            Cadastro basico de visitantes, placas associadas e histórico por unidade do{" "}
             {condominium.name}.
           </p>
         </div>
@@ -189,7 +189,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
             <input name="q" placeholder="Nome, documento ou telefone" defaultValue={searchTerm} />
           </label>
           <label>
-            Unidade do historico
+            Unidade do histórico
             <select name="unit" defaultValue={unitFilter}>
               <option value="">Todas</option>
               {units.map((unit) => (
@@ -224,7 +224,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
               <input name="phone" />
             </label>
             <label>
-              Observacoes
+              Observações
               <textarea name="notes" rows={3} />
             </label>
             <button type="submit">Cadastrar visitante</button>
@@ -262,10 +262,10 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
               <input name="occurredAt" type="datetime-local" />
             </label>
             <label>
-              Observacoes
+              Observações
               <textarea name="notes" rows={3} />
             </label>
-            <button type="submit">Registrar historico</button>
+            <button type="submit">Registrar histórico</button>
           </form>
         </div>
       </section>
@@ -294,7 +294,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
                     <input name="phone" defaultValue={visitor.phone ?? ""} />
                   </label>
                   <label>
-                    Observacoes
+                    Observações
                     <textarea name="notes" rows={3} defaultValue={visitor.notes ?? ""} />
                   </label>
                   <button type="submit">Salvar visitante</button>
@@ -345,7 +345,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
                 <th>Quando</th>
                 <th>Visitante</th>
                 <th>Unidade</th>
-                <th>Observacoes</th>
+                <th>Observações</th>
               </tr>
             </thead>
             <tbody>
@@ -360,7 +360,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
             </tbody>
           </table>
         </div>
-        {!visits.length ? <p className="muted">Nenhum historico encontrado.</p> : null}
+        {!visits.length ? <p className="muted">Nenhum histórico encontrado.</p> : null}
       </section>
     </main>
   );

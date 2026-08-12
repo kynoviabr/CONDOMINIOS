@@ -37,7 +37,7 @@ export default async function DashboardPage() {
     <KynoviaAdminShell
       active="dashboard"
       title="Dashboard"
-      description="Visao geral comercial e SaaS da Kynovia. A operacao diaria dos condominios fica no Condo Admin."
+      description="Visão geral comercial e SaaS da Kynovia. A operação diaria dos condomínios fica no Condo Admin."
       profile={profile}
     >
       {error ? <p className="form-error">Falha ao carregar indicadores do dashboard.</p> : null}

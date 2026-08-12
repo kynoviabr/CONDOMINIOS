@@ -138,15 +138,15 @@ export default async function VisitorsPage({
       <header className="admin-header">
         <div>
           <p className="eyebrow">Visitantes</p>
-          <h1>{condominium?.name ?? "Condominio"}</h1>
-          <p className="muted">Cadastro basico de visitantes e historico por unidade.</p>
+          <h1>{condominium?.name ?? "Condomínio"}</h1>
+          <p className="muted">Cadastro basico de visitantes e histórico por unidade.</p>
         </div>
         <Link className="button-link secondary" href={`/dashboard/condominiums/${condominiumId}`}>
           Voltar
         </Link>
       </header>
 
-      {queryParams.status ? <p className="form-success">Operacao concluida: {queryParams.status}</p> : null}
+      {queryParams.status ? <p className="form-success">Operação concluída: {queryParams.status}</p> : null}
       {visitorsError ? <p className="form-error">Falha ao carregar visitantes.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
@@ -157,7 +157,7 @@ export default async function VisitorsPage({
             <input name="q" placeholder="Nome, documento ou telefone" defaultValue={searchTerm} />
           </label>
           <label>
-            Unidade do historico
+            Unidade do histórico
             <select name="unit" defaultValue={unitFilter}>
               <option value="">Todas</option>
               {units.map((unit) => (
@@ -192,7 +192,7 @@ export default async function VisitorsPage({
               <input name="phone" />
             </label>
             <label>
-              Observacoes
+              Observações
               <textarea name="notes" rows={3} />
             </label>
             <button type="submit">Cadastrar visitante</button>
@@ -230,10 +230,10 @@ export default async function VisitorsPage({
               <input name="occurredAt" type="datetime-local" />
             </label>
             <label>
-              Observacoes
+              Observações
               <textarea name="notes" rows={3} />
             </label>
-            <button type="submit">Registrar historico</button>
+            <button type="submit">Registrar histórico</button>
           </form>
         </div>
       </section>
@@ -262,7 +262,7 @@ export default async function VisitorsPage({
                     <input name="phone" defaultValue={visitor.phone ?? ""} />
                   </label>
                   <label>
-                    Observacoes
+                    Observações
                     <textarea name="notes" rows={3} defaultValue={visitor.notes ?? ""} />
                   </label>
                   <button type="submit">Salvar visitante</button>
@@ -313,7 +313,7 @@ export default async function VisitorsPage({
                 <th>Quando</th>
                 <th>Visitante</th>
                 <th>Unidade</th>
-                <th>Observacoes</th>
+                <th>Observações</th>
               </tr>
             </thead>
             <tbody>
@@ -328,7 +328,7 @@ export default async function VisitorsPage({
             </tbody>
           </table>
         </div>
-        {!visits.length ? <p className="muted">Nenhum historico encontrado.</p> : null}
+        {!visits.length ? <p className="muted">Nenhum histórico encontrado.</p> : null}
       </section>
     </main>
   );

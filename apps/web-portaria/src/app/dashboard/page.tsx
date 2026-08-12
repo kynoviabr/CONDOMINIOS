@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { signOutAction } from "../actions";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { createServerSupabaseClient } from "../../lib/supabase/server";
 import { AutoRefresh } from "./auto-refresh";
@@ -87,7 +86,7 @@ function decisionLabel(value: string) {
   const labels: Record<string, string> = {
     allow: "Liberado",
     deny: "Negado",
-    manual_review: "Pendente validacao"
+    manual_review: "Pendente validação"
   };
 
   return labels[value] ?? value;
@@ -95,7 +94,7 @@ function decisionLabel(value: string) {
 
 function statusLabel(value: string | undefined) {
   const labels: Record<string, string> = {
-    invalid: "Registro invalido ou incompleto.",
+    invalid: "Registro inválido ou incompleto.",
     manual_allowed: "Liberacao manual registrada.",
     manual_denied: "Negacao de acesso registrada.",
     occurrence_created: "Ocorrencia registrada.",
@@ -225,26 +224,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
 
   return (
     <main className="operator-shell wide">
-      <header className="operator-header">
-        <div>
-          <p className="eyebrow">Central de operacao</p>
-          <h1>Painel da Portaria</h1>
-          <p className="muted">
-            Fila operacional, validacao rapida, visitantes esperados, ocorrencias e status dos portoes.
-          </p>
-        </div>
-        <div className="header-actions">
-          <AutoRefresh />
-          <Link className="button-link secondary" href="/dashboard/invites">
-            QR e placa
-          </Link>
-          <form action={signOutAction}>
-            <button className="secondary" type="submit">
-              Sair
-            </button>
-          </form>
-        </div>
-      </header>
+        <header className="operator-header">
+          <div>
+            <p className="eyebrow">Central de operação</p>
+            <h1>Painel da Portaria</h1>
+            <p className="muted">
+              Fila operacional, validação rápida, visitantes esperados, ocorrências e status dos portões.
+            </p>
+          </div>
+          <div className="header-actions">
+            <AutoRefresh />
+          </div>
+        </header>
 
       {banner ? <section className="result-banner success">{banner}</section> : null}
 
@@ -308,7 +299,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                     </strong>
                     <span>
                       {event.direction === "entry" ? "Entrada" : "Saida"} ·{" "}
-                      {accessPointById.get(event.access_point_id ?? "")?.name ?? "Ponto nao informado"} ·{" "}
+                      {accessPointById.get(event.access_point_id ?? "")?.name ?? "Ponto não informado"} ·{" "}
                       {formatDate(event.decided_at)}
                     </span>
                   </div>
@@ -325,7 +316,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               {pendingEvents.map((event) => (
                 <article className="list-row pending-row" key={event.id}>
                   <div>
-                    <strong>{metadataText(event.metadata, "visitorName") ?? event.plate ?? "Revisao manual"}</strong>
+                    <strong>{metadataText(event.metadata, "visitorName") ?? event.plate ?? "Revisão manual"}</strong>
                     <span>
                       {event.reason ?? "Aguardando decisao da portaria"} · {formatDate(event.decided_at)}
                     </span>
@@ -363,7 +354,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                       {formatDate(invite.starts_at)}
                     </span>
                   </div>
-                  <small>{invite.unit_id ?? "Unidade nao informada"}</small>
+                  <small>{invite.unit_id ?? "Unidade não informada"}</small>
                 </article>
               ))}
               {expectedInvites.length === 0 ? <p className="muted compact">Nenhum visitante esperado no filtro atual.</p> : null}
@@ -397,7 +388,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               <label>
                 Ponto de acesso
                 <select name="accessPointId" defaultValue="">
-                  <option value="">Nao acionar portao</option>
+                  <option value="">Não acionar portao</option>
                   {accessPoints.map((point) => (
                     <option key={point.id} value={point.id}>
                       {point.name}
@@ -441,7 +432,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           </section>
 
           <section className="app-panel operator-panel">
-            <h2>Registrar ocorrencia</h2>
+            <h2>Registrar ocorrência</h2>
             <form className="auth-form" action={createOccurrenceAction}>
               <label>
                 Titulo
@@ -460,7 +451,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                 Descricao
                 <input name="description" placeholder="Contexto operacional" />
               </label>
-              <button type="submit">Registrar ocorrencia</button>
+              <button type="submit">Registrar ocorrência</button>
             </form>
           </section>
 
@@ -477,7 +468,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   </div>
                 </article>
               ))}
-              {occurrences.length === 0 ? <p className="muted compact">Sem ocorrencias abertas.</p> : null}
+              {occurrences.length === 0 ? <p className="muted compact">Sem ocorrências abertas.</p> : null}
             </div>
           </section>
         </aside>

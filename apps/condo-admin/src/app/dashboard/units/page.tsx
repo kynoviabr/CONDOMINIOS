@@ -33,7 +33,7 @@ function statusMessage(status?: string) {
     return null;
   }
 
-  return status ? `Operacao concluida: ${status}` : null;
+  return status ? `Operação concluída: ${status}` : null;
 }
 
 function errorMessage(status?: string) {
@@ -42,22 +42,22 @@ function errorMessage(status?: string) {
   }
 
   if (status === "missing_unit_id") {
-    return "Nao foi possivel identificar a unidade.";
+    return "Não foi possível identificar a unidade.";
   }
 
   if (status === "create_unit_failed") {
-    return "Nao foi possivel criar a unidade.";
+    return "Não foi possível criar a unidade.";
   }
 
   if (status === "update_unit_failed") {
-    return "Nao foi possivel atualizar a unidade.";
+    return "Não foi possível atualizar a unidade.";
   }
 
   if (status === "delete_unit_failed") {
-    return "Nao foi possivel remover a unidade.";
+    return "Não foi possível remover a unidade.";
   }
 
-  return status?.includes("failed") ? `Nao foi possivel concluir: ${status}` : null;
+  return status?.includes("failed") ? `Não foi possível concluir: ${status}` : null;
 }
 
 export default async function UnitsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -91,8 +91,8 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
           <p className="eyebrow">Condo Admin</p>
           <h1>Unidades</h1>
           <p className="muted">
-            Cadastro de unidades do {condominium.name}. Esta tela trabalha somente no condominio
-            ativo do usuario.
+            Cadastro de unidades do {condominium.name}. Esta tela trabalha somente no condomínio
+            ativo do usuário.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
@@ -125,9 +125,9 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               <thead>
                 <tr>
                   <th>Bloco</th>
-                  <th>Numero</th>
+                  <th>Número</th>
                   <th>Andar</th>
-                  <th>Acoes</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,7 +171,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               <input name="block" placeholder="A" />
             </label>
             <label>
-              Numero
+              Número
               <input name="number" required placeholder="101" />
             </label>
             <label>

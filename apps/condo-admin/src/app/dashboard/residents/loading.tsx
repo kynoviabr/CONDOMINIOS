@@ -11,7 +11,7 @@ export default function ResidentsLoading() {
       <section className="admin-section">
         <div className="empty-state">
           <strong>Carregando dados</strong>
-          <p>Buscando moradores, unidades e vinculos do condominio ativo.</p>
+          <p>Buscando moradores, unidades e vínculos do condomínio ativo.</p>
         </div>
       </section>
     </main>

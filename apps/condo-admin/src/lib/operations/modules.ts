@@ -24,11 +24,11 @@ export const operationalModules = [
     title: "Unidades"
   },
   {
-    description: "Moradores, vinculos com unidades e status operacional.",
+    description: "Moradores, vínculos com unidades e status operacional.",
     href: "/dashboard/residents",
     key: "residents",
     phase: "available",
-    scope: ["Consultar moradores", "Manter vinculos com unidades", "Acompanhar bloqueios"],
+    scope: ["Consultar moradores", "Manter vínculos com unidades", "Acompanhar bloqueios"],
     title: "Moradores"
   },
   {
@@ -44,15 +44,15 @@ export const operationalModules = [
     href: "/dashboard/gates",
     key: "gates",
     phase: "available",
-    scope: ["Configurar pontos de acesso", "Acompanhar comandos", "Preparar integracoes"],
+    scope: ["Configurar pontos de acesso", "Acompanhar comandos", "Preparar integrações"],
     title: "Portoes e cancelas"
   },
   {
-    description: "Funcionarios autorizados pelo condominio.",
+    description: "Funcionarios autorizados pelo condomínio.",
     href: "/dashboard/employees",
     key: "employees",
     phase: "foundation",
-    scope: ["Cadastrar funcionarios", "Controlar status", "Preparar vinculo com acessos"],
+    scope: ["Cadastrar funcionarios", "Controlar status", "Preparar vínculo com acessos"],
     title: "Funcionarios"
   },
   {
@@ -64,15 +64,15 @@ export const operationalModules = [
     title: "Prestadores"
   },
   {
-    description: "Cadastro de visitantes, placas e historico por unidade.",
+    description: "Cadastro de visitantes, placas e histórico por unidade.",
     href: "/dashboard/visitors",
     key: "visitors",
     phase: "available",
-    scope: ["Consultar visitantes", "Gerenciar placas", "Acompanhar historico"],
+    scope: ["Consultar visitantes", "Gerenciar placas", "Acompanhar histórico"],
     title: "Visitantes"
   },
   {
-    description: "Convites recentes, validacoes, vagas e blacklist de placas.",
+    description: "Convites recentes, validações, vagas e blacklist de placas.",
     href: "/dashboard/invites",
     key: "invites",
     phase: "available",
@@ -80,7 +80,7 @@ export const operationalModules = [
     title: "Convites"
   },
   {
-    description: "Visao operacional da portaria para supervisao do condominio.",
+    description: "Visão operacional da portaria para supervisão do condomínio.",
     href: "/dashboard/doorman",
     key: "doorman",
     phase: "foundation",
@@ -92,7 +92,7 @@ export const operationalModules = [
     href: "/dashboard/occurrences",
     key: "occurrences",
     phase: "available",
-    scope: ["Registrar ocorrencias", "Classificar eventos", "Acompanhar historico"],
+    scope: ["Registrar ocorrências", "Classificar eventos", "Acompanhar histórico"],
     title: "Ocorrencias"
   },
   {
@@ -101,7 +101,7 @@ export const operationalModules = [
     key: "settings",
     phase: "available",
     scope: ["Ajustar dados basicos", "Configurar vagas", "Evitar JSON exposto"],
-    title: "Configuracoes do Condominio"
+    title: "Configurações do Condomínio"
   }
 ] satisfies CondoOperationalModule[];
 

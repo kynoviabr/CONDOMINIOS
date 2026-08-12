@@ -4,7 +4,7 @@ export default function AccessDeniedPage() {
   return (
     <AccessDeniedShell
       eyebrow="Condo Admin"
-      description="Seu perfil nao possui permissao para acessar a administracao do condominio."
+      description="Seu perfil não possui permissão para acessar a administração do condomínio."
     />
   );
 }

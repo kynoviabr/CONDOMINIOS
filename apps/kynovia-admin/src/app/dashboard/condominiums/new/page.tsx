@@ -3,6 +3,7 @@ import { KynoviaAdminShell } from "../../_components/KynoviaAdminShell";
 import { createCondominiumWithAdminAction } from "../actions";
 import { ClientRegistrationFields, RequiredLabel } from "../ClientRegistrationFields";
 import { ContractMetadataFields } from "../ContractMetadataFields";
+import { PhoneInput } from "../PhoneInput";
 import { requireAuthorizedProfile } from "../../../../lib/auth/session";
 
 type SearchParams = Promise<{
@@ -25,25 +26,25 @@ function statusMessage(status?: string) {
     return "Cliente cadastrado, mas o envio do e-mail falhou. Confira o provedor de e-mail.";
   }
 
-  return status ? `Operacao concluida: ${status}` : null;
+  return status ? `Operação concluída: ${status}` : null;
 }
 
 function errorMessage(error?: string) {
   const messages: Record<string, string> = {
-    create_admin_auth_failed: "Nao foi possivel criar o usuario de acesso. Verifique se o e-mail ja existe.",
-    create_admin_membership_failed: "Perfil criado, mas nao foi possivel vincular o administrador ao cliente.",
-    create_admin_profile_failed: "Usuario criado, mas nao foi possivel criar o perfil do administrador.",
-    create_condominium_failed: "Nao foi possivel criar o cliente.",
-    duplicate_cnpj: "Ja existe um cliente cadastrado com este CNPJ.",
-    insufficient_role: "Seu perfil nao possui permissao para criar clientes.",
-    invalid_admin_credentials: "Informe nome, e-mail e WhatsApp validos para o administrador.",
+    create_admin_auth_failed: "Não foi possível criar o usuário de acesso. Verifique se o e-mail já existe.",
+    create_admin_membership_failed: "Perfil criado, mas não foi possível vincular o administrador ao cliente.",
+    create_admin_profile_failed: "Usuário criado, mas não foi possível criar o perfil do administrador.",
+    create_condominium_failed: "Não foi possível criar o cliente.",
+    duplicate_cnpj: "Já existe um cliente cadastrado com este CNPJ.",
+    insufficient_role: "Seu perfil não possui permissão para criar clientes.",
+    invalid_admin_credentials: "Informe nome, e-mail e WhatsApp válidos para o administrador.",
     invalid_client_fields: "Revise CNPJ, e-mail, telefones, CEP, UF, contrato, valor mensal e timezone.",
     missing_admin_fields: "Informe nome, e-mail e WhatsApp do administrador.",
-    missing_condominium_fields: "Informe nome fantasia e slug validos.",
-    service_role_missing: "Configure SUPABASE_SERVICE_ROLE_KEY no servidor para criar usuarios de clientes."
+    missing_condominium_fields: "Informe nome fantasia e slug válidos.",
+    service_role_missing: "Configure SUPABASE_SERVICE_ROLE_KEY no servidor para criar usuários de clientes."
   };
 
-  return error ? messages[error] ?? `Nao foi possivel concluir: ${error}` : null;
+  return error ? messages[error] ?? `Não foi possível concluir: ${error}` : null;
 }
 
 export default async function NewCondominiumPage({ searchParams }: { searchParams: SearchParams }) {
@@ -85,7 +86,7 @@ export default async function NewCondominiumPage({ searchParams }: { searchParam
         <section className="admin-section">
           <h2>Dados do Contrato</h2>
           <p className="muted">
-            Informacoes comerciais usadas pelo dashboard SaaS. Upload real de documentos permanece
+            Informações comerciais usadas pelo dashboard SaaS. Upload real de documentos permanece
             como etapa futura segura.
           </p>
           <ContractMetadataFields />
@@ -94,8 +95,8 @@ export default async function NewCondominiumPage({ searchParams }: { searchParam
         <section className="admin-section">
           <h2>Administrador do Sistema</h2>
           <p className="muted">
-            Este usuario recebera o acesso ao Condo Admin para administrar apenas o proprio
-            condominio.
+            Este usuário recebera o acesso ao Condo Admin para administrar apenas o próprio
+            condomínio.
           </p>
           <div className="form-row split-row">
             <label>
@@ -109,14 +110,7 @@ export default async function NewCondominiumPage({ searchParams }: { searchParam
           </div>
           <label>
             <RequiredLabel>WhatsApp</RequiredLabel>
-            <input
-              name="admin_whatsapp"
-              required
-              inputMode="tel"
-              pattern="\(\d{2}\) \d{5}-\d{4}"
-              placeholder="(XX) XXXXX-XXXX"
-              title="Use o formato (XX) XXXXX-XXXX"
-            />
+            <PhoneInput name="admin_whatsapp" required />
           </label>
         </section>
 

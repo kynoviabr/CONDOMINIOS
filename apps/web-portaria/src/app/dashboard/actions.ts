@@ -118,7 +118,7 @@ export async function resolvePendingAccessAction(formData: FormData) {
       decision,
       decided_by: profile.id,
       decided_at: new Date().toISOString(),
-      reason: decision === "allow" ? "Liberado apos revisao manual." : "Negado apos revisao manual."
+      reason: decision === "allow" ? "Liberado apos revisão manual." : "Negado apos revisão manual."
     })
     .eq("id", eventId)
     .eq("decision", "manual_review");

@@ -84,9 +84,9 @@ export default async function CondominiumDetailPage({
   if (condominiumError || !condominium) {
     return (
       <main className="admin-shell">
-        <p className="form-error">Condominio nao encontrado ou sem permissao de acesso.</p>
+        <p className="form-error">Condomínio não encontrado ou sem permissão de acesso.</p>
         <Link className="button-link secondary" href="/dashboard/condominiums">
-          Voltar para condominios
+          Voltar para condomínios
         </Link>
       </main>
     );
@@ -96,10 +96,10 @@ export default async function CondominiumDetailPage({
     <main className="admin-shell">
       <header className="admin-header">
         <div>
-          <p className="eyebrow">Gestao administrativa</p>
+          <p className="eyebrow">Gestão administrativa</p>
           <h1>{condominium.name}</h1>
           <p className="muted">
-            Configuracoes, regras operacionais, unidades e pontos de acesso deste condominio.
+            Configurações, regras operacionais, unidades e pontos de acesso deste condomínio.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard/condominiums">
@@ -107,8 +107,8 @@ export default async function CondominiumDetailPage({
         </Link>
       </header>
 
-      {queryParams.status ? <p className="form-success">Operacao concluida: {queryParams.status}</p> : null}
-      {queryParams.error ? <p className="form-error">Nao foi possivel concluir: {queryParams.error}</p> : null}
+      {queryParams.status ? <p className="form-success">Operação concluída: {queryParams.status}</p> : null}
+      {queryParams.error ? <p className="form-error">Não foi possível concluir: {queryParams.error}</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
       {accessPointsError ? <p className="form-error">Falha ao carregar portoes.</p> : null}
 
@@ -126,7 +126,7 @@ export default async function CondominiumDetailPage({
 
       <section className="admin-grid two-columns">
         <div className="admin-section">
-          <h2>Dados do condominio</h2>
+          <h2>Dados do condomínio</h2>
           <form className="admin-form" action={updateCondominiumAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
@@ -146,7 +146,7 @@ export default async function CondominiumDetailPage({
         </div>
 
         <div className="admin-section">
-          <h2>Configuracoes e regras</h2>
+          <h2>Configurações e regras</h2>
           <form className="admin-form" action={updateCondominiumSettingsAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
@@ -159,7 +159,7 @@ export default async function CondominiumDetailPage({
               />
             </label>
             <label>
-              Configuracoes JSON
+              Configurações JSON
               <textarea name="settings" rows={5} defaultValue={formatJson(condominium.settings)} />
             </label>
             <label>
@@ -174,7 +174,7 @@ export default async function CondominiumDetailPage({
               Metadados JSON
               <textarea name="metadata" rows={4} defaultValue={formatJson(condominium.metadata)} />
             </label>
-            <button type="submit">Salvar configuracoes</button>
+            <button type="submit">Salvar configurações</button>
           </form>
         </div>
       </section>
@@ -183,7 +183,7 @@ export default async function CondominiumDetailPage({
         <div className="section-heading">
           <div>
             <h2>Unidades</h2>
-            <p className="muted">Vinculo direto unidade-condominio com busca por bloco ou numero.</p>
+            <p className="muted">Vinculo direto unidade-condomínio com busca por bloco ou numero.</p>
           </div>
           <form className="inline-filter">
             <input name="unit" placeholder="Buscar unidade" defaultValue={unitFilter} />
@@ -206,7 +206,7 @@ export default async function CondominiumDetailPage({
                 <th>Bloco</th>
                 <th>Unidade</th>
                 <th>Andar</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -281,12 +281,12 @@ export default async function CondominiumDetailPage({
         <div className="admin-section">
           <h2>Zona de exclusao</h2>
           <p className="muted">
-            A remocao apaga o condominio e registros dependentes por cascata conforme a migration.
+            A remoção apaga o condomínio e registros dependentes por cascata conforme a migration.
           </p>
           <form action={deleteCondominiumAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <button className="danger" type="submit">
-              Remover condominio
+              Remover condomínio
             </button>
           </form>
         </div>

@@ -87,7 +87,7 @@ export default async function HomePage() {
         <div>
           <p className="eyebrow">Kynovia Access</p>
           <h1>Morador</h1>
-          <p className="muted">Convites, aprovacoes e acessos recentes em uma tela rapida para uso diario.</p>
+          <p className="muted">Convites, aprovações e acessos recentes em uma tela rápida para uso diário.</p>
         </div>
         <form action={signOutAction}>
           <button className="secondary" type="submit">
@@ -96,7 +96,7 @@ export default async function HomePage() {
         </form>
       </header>
 
-      {!resident ? <p className="form-error">Seu perfil ainda nao esta vinculado a um morador ativo.</p> : null}
+      {!resident ? <p className="form-error">Seu perfil ainda não esta vinculado a um morador ativo.</p> : null}
       {resident && resident.status !== "active" ? (
         <p className="form-error">Seu cadastro de morador esta {resident.status}.</p>
       ) : null}
@@ -107,11 +107,11 @@ export default async function HomePage() {
           <strong>{activeInvites}</strong>
         </article>
         <article>
-          <span>Aprovacoes</span>
+          <span>Aprovações</span>
           <strong>{approvals.length}</strong>
         </article>
         <article>
-          <span>No condominio</span>
+          <span>No condomínio</span>
           <strong>{activeVehicles.length}</strong>
         </article>
       </section>
@@ -129,20 +129,20 @@ export default async function HomePage() {
       </section>
 
       <section className="app-panel">
-        <h2>Notificacoes</h2>
+        <h2>Notificações</h2>
         <div className="list-stack">
           {approvals.map((approval) => (
             <article className="list-row alert-row" key={approval.id}>
               <div>
                 <strong>{approval.visitor_name}</strong>
-                <span>Aguardando aprovacao desde {formatDate(approval.created_at)}</span>
+                <span>Aguardando aprovação desde {formatDate(approval.created_at)}</span>
               </div>
               <Link className="button-link compact-button" href="/home/invites#pendentes">
                 Ver
               </Link>
             </article>
           ))}
-          {approvals.length === 0 ? <p className="muted compact">Nenhuma aprovacao pendente agora.</p> : null}
+          {approvals.length === 0 ? <p className="muted compact">Nenhuma aprovação pendente agora.</p> : null}
         </div>
       </section>
 

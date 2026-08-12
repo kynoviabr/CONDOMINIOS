@@ -64,12 +64,13 @@ export const forbiddenKynoviaAdminOperationalModules = [
   "funcionarios",
   "prestadores",
   "portaria",
-  "ocorrencias"
+  "ocorrências"
 ] as const;
 
 export const kynoviaAdminNavigation = [
   { href: "/dashboard", key: "dashboard", label: "Dashboard" },
-  { href: "/dashboard/condominiums", key: "customers", label: "Gestao de Clientes" }
+  { href: "/dashboard/condominiums", key: "customers", label: "Gestão de Clientes" },
+  { href: "/dashboard/users", key: "users", label: "Gestão de Usuários" }
 ] as const;
 
 export function metadataObject(value: unknown): CondominiumMetadata {
@@ -115,6 +116,20 @@ export function isValidCnpjFormat(value: string) {
 
 export function isValidPhoneFormat(value: string) {
   return /^\(\d{2}\) \d{5}-\d{4}$/.test(value);
+}
+
+export function normalizePhoneFormat(value: string) {
+  let digits = onlyDigits(value);
+
+  if (digits.length === 13 && digits.startsWith("55")) {
+    digits = digits.slice(2);
+  }
+
+  if (digits.length !== 11) {
+    return value.trim();
+  }
+
+  return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
 }
 
 export function isValidCepFormat(value: string) {
