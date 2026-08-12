@@ -87,4 +87,12 @@ export {
   residentStatuses,
   residentUnitRelationships
 } from "./residents";
+export {
+  isResidentVehicleStatus,
+  isResidentVehicleType,
+  residentVehicleStatuses,
+  residentVehicleTypes,
+  sanitizeVehicleSearch
+} from "./vehicles";
+export type { ResidentVehicleStatus, ResidentVehicleType } from "./vehicles";
 export { createBrowserSupabaseClient } from "./supabase";

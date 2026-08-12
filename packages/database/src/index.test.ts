@@ -239,9 +239,15 @@ describe("@kynovia/database", () => {
             tenant_id: "tenant_123",
             condominium_id: "condominium_123",
             resident_id: "resident_123",
+            unit_id: "unit_123",
             plate: "ABC1D23",
             label: "Carro principal",
             status: "active",
+            vehicle_type: null,
+            brand: null,
+            model: null,
+            color: null,
+            notes: null,
             block_reason: null,
             blocked_at: null,
             created_at: "2026-05-18T00:00:00Z",
@@ -251,6 +257,7 @@ describe("@kynovia/database", () => {
             tenant_id: "tenant_123",
             condominium_id: "condominium_123",
             resident_id: "resident_123",
+            unit_id: "unit_123",
             plate: "ABC1D23"
           },
           Update: {
