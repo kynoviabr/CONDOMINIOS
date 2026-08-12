@@ -35,7 +35,7 @@ export const operationalModules = [
     description: "Veiculos de moradores e visitantes autorizados.",
     href: "/dashboard/vehicles",
     key: "vehicles",
-    phase: "foundation",
+    phase: "available",
     scope: ["Centralizar placas", "Preparar regras de autorizacao", "Apoiar leitura por placa"],
     title: "Veiculos"
   },
