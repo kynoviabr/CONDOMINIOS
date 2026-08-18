@@ -332,12 +332,62 @@ summary:focus-visible {
 .admin-form,
 .inline-form {
   display: grid;
-  gap: 22px;
+  gap: 16px;
 }
 
 .filter-form {
-  align-items: end;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-form label {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  min-width: 140px;
+}
+
+.filter-form label:first-child {
+  flex: 2 1 240px;
+}
+
+.filter-form button,
+.filter-form .button-link {
+  flex: 0 0 auto;
+  height: 38px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.resident-filter-form {
+  align-items: flex-end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1.3fr) minmax(130px, 1fr) auto auto;
+}
+
+.resident-filter-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.resident-filter-form button,
+.resident-filter-form .button-link {
+  height: 38px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .resident-filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .vehicle-filter-form {

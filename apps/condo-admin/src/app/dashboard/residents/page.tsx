@@ -201,7 +201,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
       <section className="toolbar">
-        <form className="filter-form">
+        <form className="filter-form resident-filter-form">
           <label>
             Buscar
             <input name="q" placeholder="Nome, CPF, telefone ou e-mail" defaultValue={searchTerm} />
