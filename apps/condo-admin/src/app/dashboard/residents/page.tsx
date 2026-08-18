@@ -201,12 +201,12 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
       <section className="toolbar">
-        <form className="filter-form resident-filter-form">
-          <label>
+        <form className="resident-filter-form">
+          <label className="filter-search-field">
             Buscar
             <input name="q" placeholder="Nome, CPF, telefone ou e-mail" defaultValue={searchTerm} />
           </label>
-          <label>
+          <label className="filter-unit-field">
             Unidade
             <select name="unitId" defaultValue={validSelectedUnitId}>
               <option value="">Todas as unidades</option>
@@ -217,7 +217,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               ))}
             </select>
           </label>
-          <label>
+          <label className="filter-status-field">
             Status
             <select name="status" defaultValue={statusFilter}>
               <option value="">Todos</option>
@@ -228,8 +228,10 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               ))}
             </select>
           </label>
-          <button type="submit">Filtrar</button>
-          <Link className="button-link secondary" href="/dashboard/residents">
+          <button className="filter-submit-button" type="submit">
+            Filtrar
+          </button>
+          <Link className="button-link secondary filter-clear-button" href="/dashboard/residents">
             Limpar
           </Link>
         </form>
