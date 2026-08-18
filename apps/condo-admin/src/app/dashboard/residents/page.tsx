@@ -200,15 +200,29 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
-      <section className="toolbar">
-        <form className="resident-filter-form">
-          <label className="filter-search-field">
+      <section className="toolbar" style={{ margin: "0 0 24px", padding: "16px" }}>
+        <form
+          className="resident-filter-form"
+          style={{
+            alignItems: "flex-end",
+            display: "grid",
+            gap: "12px",
+            gridTemplateColumns: "minmax(200px, 2fr) minmax(180px, 1.2fr) minmax(130px, 1fr) auto auto",
+            width: "100%"
+          }}
+        >
+          <label className="filter-search-field" style={{ margin: 0 }}>
             Buscar
-            <input name="q" placeholder="Nome, CPF, telefone ou e-mail" defaultValue={searchTerm} />
+            <input
+              defaultValue={searchTerm}
+              name="q"
+              placeholder="Nome, CPF, telefone ou e-mail"
+              style={{ minHeight: "38px" }}
+            />
           </label>
-          <label className="filter-unit-field">
+          <label className="filter-unit-field" style={{ margin: 0 }}>
             Unidade
-            <select name="unitId" defaultValue={validSelectedUnitId}>
+            <select defaultValue={validSelectedUnitId} name="unitId" style={{ minHeight: "38px" }}>
               <option value="">Todas as unidades</option>
               {units.map((unit) => (
                 <option key={unit.id} value={unit.id}>
@@ -217,9 +231,9 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               ))}
             </select>
           </label>
-          <label className="filter-status-field">
+          <label className="filter-status-field" style={{ margin: 0 }}>
             Status
-            <select name="status" defaultValue={statusFilter}>
+            <select defaultValue={statusFilter} name="status" style={{ minHeight: "38px" }}>
               <option value="">Todos</option>
               {residentStatuses.map((status) => (
                 <option key={status} value={status}>
@@ -228,10 +242,34 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               ))}
             </select>
           </label>
-          <button className="filter-submit-button" type="submit">
+          <button
+            className="filter-submit-button"
+            style={{
+              fontSize: "0.88rem",
+              height: "38px",
+              margin: 0,
+              minHeight: "38px",
+              padding: "0 18px",
+              whiteSpace: "nowrap",
+              width: "auto"
+            }}
+            type="submit"
+          >
             Filtrar
           </button>
-          <Link className="button-link secondary filter-clear-button" href="/dashboard/residents">
+          <Link
+            className="button-link secondary filter-clear-button"
+            href="/dashboard/residents"
+            style={{
+              fontSize: "0.88rem",
+              height: "38px",
+              margin: 0,
+              minHeight: "38px",
+              padding: "0 16px",
+              whiteSpace: "nowrap",
+              width: "auto"
+            }}
+          >
             Limpar
           </Link>
         </form>
