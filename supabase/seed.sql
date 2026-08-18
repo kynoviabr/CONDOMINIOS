@@ -737,6 +737,146 @@ values (
 on conflict (id) do update
 set status = excluded.status;
 
+insert into public.suppliers (
+  id,
+  tenant_id,
+  condominium_id,
+  name,
+  trade_name,
+  document,
+  category,
+  contact_name,
+  phone,
+  email,
+  status,
+  allowed_weekdays,
+  allowed_time_start,
+  allowed_time_end,
+  metadata
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000951',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    'Atlas Schindler Elevadores Ltda',
+    'Atlas Schindler',
+    '00.000.000/0001-91',
+    'maintenance',
+    'Carlos Manutenção',
+    '+5511999998888',
+    'suporte@atlas.exemplo.com',
+    'active',
+    '{1,2,3,4,5,6,7}',
+    '00:00',
+    '23:59',
+    '{"contractNumber":"CT-2026-01"}'::jsonb
+  ),
+  (
+    '00000000-0000-0000-0000-000000000952',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    'Verde & Vida Jardinagem ME',
+    'Verde & Vida',
+    '11.222.333/0001-44',
+    'gardening',
+    'Roberto Jardineiro',
+    '+5511988887777',
+    'contato@verdevida.exemplo.com',
+    'active',
+    '{2,4,6}',
+    '08:00',
+    '17:00',
+    '{"notes":"Entrada autorizada ter/qui/sex"}'::jsonb
+  )
+on conflict (id) do update
+set name = excluded.name,
+    trade_name = excluded.trade_name,
+    document = excluded.document,
+    category = excluded.category,
+    contact_name = excluded.contact_name,
+    phone = excluded.phone,
+    email = excluded.email,
+    status = excluded.status,
+    allowed_weekdays = excluded.allowed_weekdays,
+    allowed_time_start = excluded.allowed_time_start,
+    allowed_time_end = excluded.allowed_time_end,
+    metadata = excluded.metadata;
+
+insert into public.employees (
+  id,
+  tenant_id,
+  condominium_id,
+  full_name,
+  document,
+  role_title,
+  department,
+  phone,
+  email,
+  shift_start,
+  shift_end,
+  workdays,
+  status,
+  emergency_contact_name,
+  emergency_contact_phone,
+  hire_date,
+  metadata
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000961',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    'Antônio Carlos Ferreira',
+    '123.456.789-00',
+    'Zelador Geral',
+    'maintenance',
+    '+5511977776666',
+    'antonio.zeladoria@condominio.exemplo.com',
+    '08:00',
+    '17:00',
+    '{2,3,4,5,6}',
+    'active',
+    'Maria Ferreira (Esposa)',
+    '+5511977770000',
+    '2024-02-01',
+    '{"badgeNumber":"ZEL-01","uniformSize":"G"}'::jsonb
+  ),
+  (
+    '00000000-0000-0000-0000-000000000962',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    'Luciana Silveira',
+    '987.654.321-11',
+    'Supervisora de Portaria',
+    'gatehouse',
+    '+5511966665555',
+    'luciana.portaria@condominio.exemplo.com',
+    '07:00',
+    '19:00',
+    '{2,4,6}',
+    'active',
+    'Paulo Silveira (Irmão)',
+    '+5511966660000',
+    '2024-05-15',
+    '{"badgeNumber":"POR-02","shiftType":"12x36"}'::jsonb
+  )
+on conflict (id) do update
+set full_name = excluded.full_name,
+    document = excluded.document,
+    role_title = excluded.role_title,
+    department = excluded.department,
+    phone = excluded.phone,
+    email = excluded.email,
+    shift_start = excluded.shift_start,
+    shift_end = excluded.shift_end,
+    workdays = excluded.workdays,
+    status = excluded.status,
+    emergency_contact_name = excluded.emergency_contact_name,
+    emergency_contact_phone = excluded.emergency_contact_phone,
+    hire_date = excluded.hire_date,
+    metadata = excluded.metadata;
+
 insert into public.audit_logs (
   id,
   tenant_id,
@@ -756,3 +896,4 @@ values (
   '{"environment":"development"}'::jsonb
 )
 on conflict (id) do nothing;
+

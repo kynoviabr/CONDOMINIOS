@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { registerPlateExitAction, validateInvitePlateAction, validateInviteQrAction } from "./actions";
+import { QrCameraScanner } from "./QrCameraScanner";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
@@ -36,16 +37,16 @@ function formatDate(value: string) {
 
 function resultLabel(value: string | undefined) {
   const labels: Record<string, string> = {
-    allowed: "Acesso liberado",
-    cancelled: "Convite cancelado",
-    expired: "Convite expirado",
-    invalid: "Codigo inválido",
-    not_started: "Convite fora do horario",
-    usage_limit_reached: "Limite de uso atingido",
-    blacklisted: "Placa bloqueada",
-    parking_full: "Vagas esgotadas",
-    active_stay_exists: "Permanencia ja ativa",
-    exit_recorded: "Saida registrada"
+    active_stay_exists: "Permanência já ativa no condomínio",
+    allowed: "Acesso Liberado com Sucesso",
+    blacklisted: "Acesso Negado: Placa Bloqueada na Blacklist",
+    cancelled: "Convite Cancelado pelo Morador",
+    exit_recorded: "Saída Registrada com Sucesso",
+    expired: "Convite Expirado",
+    invalid: "Código de Convite / QR Code Inválido",
+    not_started: "Convite Fora do Horário Permitido",
+    parking_full: "Vagas de Visitantes Esgotadas",
+    usage_limit_reached: "Limite de Utilizações do Convite Atingido"
   };
 
   return value ? labels[value] ?? value : null;
@@ -81,98 +82,142 @@ export default async function InviteValidationPage({ searchParams }: { searchPar
     0
   );
   const latestResult = resultLabel(queryParams.result);
+  const isSuccess = queryParams.result === "allowed" || queryParams.result === "exit_recorded";
 
   return (
     <main className="operator-shell">
       <header className="operator-header">
         <div>
           <p className="eyebrow">Portaria</p>
-          <h1>Validar QR Code</h1>
-          <p className="muted">Cole ou leia o payload do QR Code temporario apresentado pelo visitante.</p>
+          <h1>Validação de Convites & QR Code</h1>
+          <p className="muted">
+            Leitura via câmera, leitor de código de barras ou validação de placa de veículos.
+          </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
-          Voltar
+          Voltar ao Painel
         </Link>
       </header>
 
       {latestResult ? (
-        <section className={`result-banner ${queryParams.result === "allowed" ? "success" : "danger"}`}>
+        <section
+          className={`result-banner ${isSuccess ? "success" : "danger"}`}
+          style={{
+            borderRadius: "8px",
+            fontSize: "1.05rem",
+            marginBottom: "20px",
+            padding: "16px"
+          }}
+        >
           <strong>{latestResult}</strong>
-          {queryParams.plate ? <span>Placa {queryParams.plate}</span> : null}
-          {queryParams.invite ? <span>Convite {queryParams.invite}</span> : null}
+          {queryParams.plate ? <div style={{ fontSize: "0.9rem", marginTop: "4px" }}>Placa: <strong>{queryParams.plate}</strong></div> : null}
+          {queryParams.invite ? <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>Código do convite: {queryParams.invite}</div> : null}
         </section>
       ) : null}
 
       <section className="operator-grid">
+        {/* Leitura e Câmera de QR Code */}
+        <div className="app-panel operator-panel" style={{ gridColumn: "span 2" }}>
+          <h2>1. Leitura de QR Code (Câmera ou Leitor Óptico)</h2>
+          <p className="muted" style={{ marginBottom: "12px" }}>
+            Aponte a câmera para o QR Code do smartphone do visitante ou use o leitor de código de barras.
+          </p>
+          <QrCameraScanner onScanAction={validateInviteQrAction} />
+        </div>
+
+        {/* Entrada por Placa */}
         <div className="app-panel operator-panel">
-          <h2>Leitura do convite</h2>
-          <form className="auth-form" action={validateInviteQrAction}>
+          <h2>2. Entrada por Placa</h2>
+          <form action={validateInvitePlateAction} className="auth-form">
             <label>
-              QR Code
-              <input autoFocus name="qrPayload" required placeholder="convite.token" />
+              Placa do Veículo
+              <input name="plate" placeholder="Ex: ABC1D23" required />
             </label>
-            <button type="submit">Validar QR Code</button>
+            <button style={{ minHeight: "44px" }} type="submit">
+              🚗 Liberar Entrada
+            </button>
           </form>
         </div>
 
+        {/* Saída por Placa */}
         <div className="app-panel operator-panel">
-          <h2>Entrada por placa</h2>
-          <form className="auth-form" action={validateInvitePlateAction}>
+          <h2>3. Saída de Visitante</h2>
+          <form action={registerPlateExitAction} className="auth-form">
             <label>
-              Placa
-              <input name="plate" required placeholder="ABC1D23" />
+              Placa do Veículo Saindo
+              <input name="plate" placeholder="Ex: ABC1D23" required />
             </label>
-            <button type="submit">Validar placa</button>
-          </form>
-        </div>
-
-        <div className="app-panel operator-panel">
-          <h2>Saida por placa</h2>
-          <form className="auth-form" action={registerPlateExitAction}>
-            <label>
-              Placa
-              <input name="plate" required placeholder="ABC1D23" />
-            </label>
-            <button className="secondary" type="submit">Registrar saida</button>
+            <button className="secondary" style={{ minHeight: "44px" }} type="submit">
+              🚪 Registrar Saída
+            </button>
           </form>
         </div>
       </section>
 
-      <section className="app-panel operator-panel">
-        <h2>Permanencia ativa</h2>
-        <p className="muted">
-          {activeStays.length} veiculo(s) em permanencia
-          {totalCapacity > 0 ? ` de ${totalCapacity} vaga(s) configuradas` : ""}.
-        </p>
-        <div className="list-stack">
-          {activeStays.map((stay) => (
-            <article className="list-row" key={stay.id}>
-              <div>
-                <strong>{stay.plate}</strong>
-                <span>
-                  {stay.visitor_name} · entrada {formatDate(stay.entered_at)}
-                </span>
-              </div>
-            </article>
-          ))}
+      {/* Permanência Ativa no Condomínio */}
+      <section className="app-panel operator-panel" style={{ marginTop: "24px" }}>
+        <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
+          <h2>Veículos em Permanência Ativa ({activeStays.length})</h2>
+          <span className="status-badge active">
+            {totalCapacity > 0
+              ? `${activeStays.length} / ${totalCapacity} vagas ocupadas`
+              : `${activeStays.length} veículo(s) no condomínio`}
+          </span>
         </div>
+        <p className="muted">Visitantes e prestadores que entraram e ainda não registraram saída.</p>
+
+        {activeStays.length === 0 ? (
+          <p className="muted compact">Nenhum veículo visitante no condomínio neste momento.</p>
+        ) : (
+          <div className="list-stack">
+            {activeStays.map((stay) => (
+              <article className="list-row" key={stay.id}>
+                <div>
+                  <strong>🚗 Placa: {stay.plate}</strong>
+                  <span>
+                    {stay.visitor_name} · Entrada registrada em {formatDate(stay.entered_at)}
+                  </span>
+                </div>
+                <form action={registerPlateExitAction}>
+                  <input name="plate" type="hidden" value={stay.plate} />
+                  <button className="secondary compact-button" type="submit">
+                    Dar Saída
+                  </button>
+                </form>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="app-panel operator-panel">
-        <h2>Historico recente</h2>
+      {/* Histórico Recente de Validações */}
+      <section className="app-panel operator-panel" style={{ marginTop: "24px" }}>
+        <h2>Histórico Recente de Validações</h2>
         {error ? <p className="form-error">Falha ao carregar validações.</p> : null}
         <div className="list-stack">
-          {validations.map((validation) => (
-            <article className="list-row" key={validation.id}>
-              <div>
-                <strong>{resultLabel(validation.result)}</strong>
-                <span>
-                  {validation.reason ?? "Sem observacao"} · {formatDate(validation.created_at)}
-                </span>
-              </div>
-              {validation.invite_id ? <small>{validation.invite_id}</small> : null}
-            </article>
-          ))}
+          {validations.map((validation) => {
+            const isValAllowed = validation.result === "allowed";
+            return (
+              <article className="list-row" key={validation.id}>
+                <div>
+                  <span
+                    className={`status-badge ${isValAllowed ? "active" : "destructive"}`}
+                    style={{ marginRight: "8px" }}
+                  >
+                    {resultLabel(validation.result)}
+                  </span>
+                  <span>
+                    {validation.reason ?? "Sem observação"} · {formatDate(validation.created_at)}
+                  </span>
+                </div>
+                {validation.invite_id ? (
+                  <small style={{ color: "#64748b", fontFamily: "monospace" }}>
+                    ID: {validation.invite_id.slice(0, 8)}...
+                  </small>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       </section>
     </main>
