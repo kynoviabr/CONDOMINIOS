@@ -416,7 +416,8 @@ summary:focus-visible {
 .edit-vehicle-form,
 .edit-unit-form,
 .edit-supplier-form,
-.edit-employee-form {
+.edit-employee-form,
+.edit-visitor-form {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 8px;

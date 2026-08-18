@@ -1,3 +1,4 @@
+import { formatUnitLabel } from "@kynovia/database";
 import Link from "next/link";
 import {
   createVisitorAction,
@@ -7,7 +8,7 @@ import {
   deleteVisitorVehicleAction,
   updateVisitorAction
 } from "./actions";
-import { requireAuthorizedProfile } from "../../../lib/auth/session";
+import { DeleteVisitorButton } from "./DeleteVisitorButton";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
@@ -45,16 +46,6 @@ type VisitHistory = {
 
 export const dynamic = "force-dynamic";
 
-function unitLabel(unit: Unit | undefined) {
-  if (!unit) {
-    return "Unidade removida";
-  }
-
-  return [unit.block, unit.number, unit.floor ? `${unit.floor} andar` : null]
-    .filter(Boolean)
-    .join(" / ");
-}
-
 function formatDate(value: string, timeZone: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
@@ -69,12 +60,12 @@ function sanitizeSearch(value: string) {
 
 function statusMessage(status?: string) {
   const labels: Record<string, string> = {
-    visitor_created: "Visitante cadastrado.",
-    visitor_updated: "Visitante atualizado.",
-    visitor_deleted: "Visitante removido.",
-    visitor_vehicle_created: "Placa associada.",
-    visitor_vehicle_deleted: "Placa removida.",
-    visit_created: "Historico de visita registrado."
+    visit_created: "Histórico de visita registrado com sucesso.",
+    visitor_created: "Visitante cadastrado com sucesso.",
+    visitor_deleted: "Visitante removido com sucesso.",
+    visitor_updated: "Dados do visitante atualizados.",
+    visitor_vehicle_created: "Placa associada ao visitante com sucesso.",
+    visitor_vehicle_deleted: "Placa removida com sucesso."
   };
 
   return status ? labels[status] ?? null : null;
@@ -87,118 +78,215 @@ function errorMessage(status?: string) {
     create_visitor_vehicle_failed: "Não foi possível associar a placa.",
     delete_visitor_failed: "Não foi possível remover o visitante.",
     delete_visitor_vehicle_failed: "Não foi possível remover a placa.",
-    invalid_visitor_vehicle_plate: "Informe uma placa brasileira valida.",
-    missing_visit_fields: "Informe visitante e unidade.",
+    invalid_visitor_vehicle_plate: "Informe uma placa brasileira válida (Mercosul ou antiga).",
+    missing_visit_fields: "Informe o visitante e a unidade de destino.",
     missing_visitor_fields: "Informe os dados obrigatórios do visitante.",
     missing_visitor_id: "Não foi possível identificar o visitante.",
     missing_visitor_vehicle_id: "Não foi possível identificar a placa.",
-    update_visitor_failed: "Não foi possível atualizar o visitante."
+    update_visitor_failed: "Não foi possível atualizar os dados do visitante."
   };
 
   return status ? labels[status] ?? null : null;
 }
 
 export default async function VisitorsPage({ searchParams }: { searchParams: SearchParams }) {
-  await requireAuthorizedProfile();
   const context = requireOperationalModuleAccess(await getCondoAdminContext(), "visitors");
-  const queryParams = await searchParams;
-
-  const { condominium } = context;
-  const searchTerm = queryParams.q?.trim() ?? "";
-  const safeSearchTerm = sanitizeSearch(searchTerm);
-  const unitFilter = queryParams.unit?.trim() ?? "";
+  const params = await searchParams;
+  const search = sanitizeSearch(params.q ?? "");
+  const selectedUnit = (params.unit ?? "").trim();
   const supabase = await createServerSupabaseClient();
 
-  let visitorsQuery = supabase
-    .from("visitors")
-    .select("id, full_name, document, phone, notes")
-    .eq("condominium_id", condominium.id)
-    .order("full_name", { ascending: true });
+  const [{ data: unitsData }, { data: rawVisitorsData }, { data: vehiclesData }, { data: visitsData }] =
+    await Promise.all([
+      supabase
+        .from("units")
+        .select("id, block, number, floor")
+        .eq("tenant_id", context.profile.tenantId)
+        .eq("condominium_id", context.condominium.id)
+        .order("number", { ascending: true }),
+      supabase
+        .from("visitors")
+        .select("id, full_name, document, phone, notes")
+        .eq("tenant_id", context.profile.tenantId)
+        .eq("condominium_id", context.condominium.id)
+        .order("full_name", { ascending: true }),
+      supabase
+        .from("visitor_vehicles")
+        .select("id, visitor_id, plate")
+        .eq("tenant_id", context.profile.tenantId)
+        .eq("condominium_id", context.condominium.id)
+        .order("plate", { ascending: true }),
+      supabase
+        .from("visitor_unit_visits")
+        .select("id, visitor_id, unit_id, occurred_at, notes")
+        .eq("tenant_id", context.profile.tenantId)
+        .eq("condominium_id", context.condominium.id)
+        .order("occurred_at", { ascending: false })
+        .limit(100)
+    ]);
 
-  if (safeSearchTerm) {
-    visitorsQuery = visitorsQuery.or(
-      `full_name.ilike.%${safeSearchTerm}%,document.ilike.%${safeSearchTerm}%,phone.ilike.%${safeSearchTerm}%`
-    );
+  const units = (unitsData ?? []) as Unit[];
+  const unitsById = new Map(units.map((unit) => [unit.id, unit]));
+  const vehicles = (vehiclesData ?? []) as VisitorVehicle[];
+  const visits = (visitsData ?? []) as VisitHistory[];
+
+  const vehiclesByVisitor = new Map<string, VisitorVehicle[]>();
+  for (const vehicle of vehicles) {
+    const list = vehiclesByVisitor.get(vehicle.visitor_id) ?? [];
+    list.push(vehicle);
+    vehiclesByVisitor.set(vehicle.visitor_id, list);
   }
 
-  const [
-    { data: visitorsData, error: visitorsError },
-    { data: unitsData, error: unitsError }
-  ] = await Promise.all([
-    visitorsQuery,
-    supabase
-      .from("units")
-      .select("id, block, number, floor")
-      .eq("condominium_id", condominium.id)
-      .order("block", { ascending: true })
-      .order("number", { ascending: true })
-  ]);
+  const visitsByVisitor = new Map<string, VisitHistory[]>();
+  for (const visit of visits) {
+    const list = visitsByVisitor.get(visit.visitor_id) ?? [];
+    list.push(visit);
+    visitsByVisitor.set(visit.visitor_id, list);
+  }
 
-  const visitors = (visitorsData ?? []) as Visitor[];
-  const units = (unitsData ?? []) as Unit[];
-  const visitorIds = visitors.map((visitor) => visitor.id);
-  const [{ data: vehiclesData }, { data: visitsData }] = visitorIds.length
-    ? await Promise.all([
-        supabase
-          .from("visitor_vehicles")
-          .select("id, visitor_id, plate")
-          .in("visitor_id", visitorIds)
-          .order("plate", { ascending: true }),
-        supabase
-          .from("visitor_unit_visits")
-          .select("id, visitor_id, unit_id, occurred_at, notes")
-          .in("visitor_id", visitorIds)
-          .order("occurred_at", { ascending: false })
-      ])
-    : [{ data: [] }, { data: [] }];
+  const visitors = ((rawVisitorsData ?? []) as Visitor[]).filter((visitor) => {
+    if (selectedUnit) {
+      const visitorVisits = visitsByVisitor.get(visitor.id) ?? [];
+      const hasVisited = visitorVisits.some((v) => v.unit_id === selectedUnit);
+      if (!hasVisited) {
+        return false;
+      }
+    }
 
-  const vehicles = (vehiclesData ?? []) as VisitorVehicle[];
-  const visits = ((visitsData ?? []) as VisitHistory[]).filter(
-    (visit) => !unitFilter || visit.unit_id === unitFilter
-  );
-  const unitsById = new Map(units.map((unit) => [unit.id, unit]));
-  const visitorsById = new Map(visitors.map((visitor) => [visitor.id, visitor]));
-  const success = statusMessage(queryParams.status);
-  const failure = errorMessage(queryParams.status);
+    if (search) {
+      const matchName = visitor.full_name.toLowerCase().includes(search.toLowerCase());
+      const matchDoc = (visitor.document ?? "").toLowerCase().includes(search.toLowerCase());
+      const matchPhone = (visitor.phone ?? "").toLowerCase().includes(search.toLowerCase());
+      const visitorPlates = (vehiclesByVisitor.get(visitor.id) ?? []).map((v) => v.plate.toLowerCase());
+      const matchPlate = visitorPlates.some((p) => p.includes(search.toLowerCase()));
+
+      return matchName || matchDoc || matchPhone || matchPlate;
+    }
+
+    return true;
+  });
+
+  const totalVisitors = (rawVisitorsData ?? []).length;
+  const visitorsWithVehicles = new Set(vehicles.map((v) => v.visitor_id)).size;
+  const totalVisitsCount = visits.length;
+
+  const success = statusMessage(params.status);
+  const failure = errorMessage(params.status);
 
   return (
     <main className="admin-shell">
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Visitantes</h1>
+          <h1>Visitantes e Placas</h1>
           <p className="muted">
-            Cadastro basico de visitantes, placas associadas e histórico por unidade do{" "}
-            {condominium.name}.
+            Cadastro de visitantes, veículos associados e histórico de acessos às unidades do{" "}
+            <strong>{context.condominium.name}</strong>.
           </p>
         </div>
         <Link className="button-link secondary" href="/dashboard">
-          Voltar
+          Voltar ao painel
         </Link>
       </header>
 
-      {success ? <p className="form-success">{success}</p> : null}
-      {failure ? <p className="form-error">{failure}</p> : null}
-      {visitorsError ? <p className="form-error">Falha ao carregar visitantes.</p> : null}
-      {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
+      {success ? (
+        <section className="feedback success" role="alert">
+          {success}
+        </section>
+      ) : null}
 
+      {failure ? (
+        <section className="feedback destructive" role="alert">
+          {failure}
+        </section>
+      ) : null}
+
+      <section className="condo-overview">
+        <div className="metric-card">
+          <span>Total de Visitantes</span>
+          <strong>{totalVisitors}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Com Veículos Cadastrados</span>
+          <strong>{visitorsWithVehicles}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Visitas Registradas</span>
+          <strong>{totalVisitsCount}</strong>
+        </div>
+      </section>
+
+      {/* Formulário de Novo Visitante no Topo */}
+      <section className="admin-section" style={{ marginBottom: "24px" }}>
+        <h2>Novo Visitante</h2>
+        <p className="section-description">
+          Cadastre um visitante frequente, familiar ou prestador eventual vinculado às unidades.
+        </p>
+
+        <form action={createVisitorAction} className="admin-form">
+          <input name="condominiumId" type="hidden" value={context.condominium.id} />
+          <div
+            style={{
+              display: "grid",
+              gap: "16px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))"
+            }}
+          >
+            <label>
+              Nome Completo *
+              <input name="fullName" placeholder="Ex: Mariana Silveira" required />
+            </label>
+
+            <label>
+              CPF ou RG
+              <input name="document" placeholder="000.000.000-00" />
+            </label>
+
+            <label>
+              Telefone / WhatsApp
+              <input name="phone" placeholder="(11) 98888-0000" />
+            </label>
+
+            <label style={{ gridColumn: "1 / -1" }}>
+              Observações internas
+              <textarea
+                name="notes"
+                placeholder="Detalhes adicionais, permissões especiais, parentesco..."
+                rows={2}
+              />
+            </label>
+          </div>
+
+          <div>
+            <button type="submit">Cadastrar Visitante</button>
+          </div>
+        </form>
+      </section>
+
+      {/* Toolbar de Filtros */}
       <section className="toolbar">
         <form className="filter-form">
           <label>
-            Buscar
-            <input name="q" placeholder="Nome, documento ou telefone" defaultValue={searchTerm} />
+            Buscar visitante
+            <input
+              defaultValue={params.q ?? ""}
+              name="q"
+              placeholder="Nome, documento, telefone, placa..."
+            />
           </label>
+
           <label>
-            Unidade do histórico
-            <select name="unit" defaultValue={unitFilter}>
-              <option value="">Todas</option>
+            Filtrar por unidade visitada
+            <select defaultValue={params.unit ?? ""} name="unit">
+              <option value="">Todas as unidades</option>
               {units.map((unit) => (
                 <option key={unit.id} value={unit.id}>
-                  {unitLabel(unit)}
+                  {formatUnitLabel(unit)}
                 </option>
               ))}
             </select>
           </label>
+
           <button type="submit">Filtrar</button>
           <Link className="button-link secondary" href="/dashboard/visitors">
             Limpar
@@ -206,161 +294,206 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Sea
         </form>
       </section>
 
-      <section className="admin-grid">
-        <div className="admin-section">
-          <h2>Novo visitante</h2>
-          <form className="admin-form" action={createVisitorAction}>
-            <input name="condominiumId" type="hidden" value={condominium.id} />
-            <label>
-              Nome completo
-              <input name="fullName" required placeholder="Joao Visitante" />
-            </label>
-            <label>
-              Documento
-              <input name="document" />
-            </label>
-            <label>
-              Telefone
-              <input name="phone" />
-            </label>
-            <label>
-              Observações
-              <textarea name="notes" rows={3} />
-            </label>
-            <button type="submit">Cadastrar visitante</button>
-          </form>
-        </div>
-
-        <div className="admin-section">
-          <h2>Registrar visita</h2>
-          <form className="admin-form" action={createVisitorUnitVisitAction}>
-            <input name="condominiumId" type="hidden" value={condominium.id} />
-            <label>
-              Visitante
-              <select name="visitorId" required>
-                <option value="">Selecione</option>
-                {visitors.map((visitor) => (
-                  <option key={visitor.id} value={visitor.id}>
-                    {visitor.full_name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Unidade
-              <select name="unitId" required>
-                <option value="">Selecione</option>
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unitLabel(unit)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Data e hora
-              <input name="occurredAt" type="datetime-local" />
-            </label>
-            <label>
-              Observações
-              <textarea name="notes" rows={3} />
-            </label>
-            <button type="submit">Registrar histórico</button>
-          </form>
-        </div>
-      </section>
-
+      {/* Listagem de Visitantes */}
       <section className="admin-section">
-        <h2>Visitantes cadastrados</h2>
-        <div className="list-stack">
-          {visitors.map((visitor) => {
-            const visitorVehicles = vehicles.filter((vehicle) => vehicle.visitor_id === visitor.id);
-
-            return (
-              <article className="management-record" key={visitor.id}>
-                <form className="record-grid" action={updateVisitorAction}>
-                  <input name="condominiumId" type="hidden" value={condominium.id} />
-                  <input name="visitorId" type="hidden" value={visitor.id} />
-                  <label>
-                    Nome
-                    <input name="fullName" required defaultValue={visitor.full_name} />
-                  </label>
-                  <label>
-                    Documento
-                    <input name="document" defaultValue={visitor.document ?? ""} />
-                  </label>
-                  <label>
-                    Telefone
-                    <input name="phone" defaultValue={visitor.phone ?? ""} />
-                  </label>
-                  <label>
-                    Observações
-                    <textarea name="notes" rows={3} defaultValue={visitor.notes ?? ""} />
-                  </label>
-                  <button type="submit">Salvar visitante</button>
-                </form>
-
-                <div>
-                  <h3>Placas associadas</h3>
-                  <form className="inline-form compact-form" action={createVisitorVehicleAction}>
-                    <input name="condominiumId" type="hidden" value={condominium.id} />
-                    <input name="visitorId" type="hidden" value={visitor.id} />
-                    <input name="plate" required placeholder="ABC1D23" />
-                    <button type="submit">Adicionar placa</button>
-                  </form>
-                  <div className="chips">
-                    {visitorVehicles.map((vehicle) => (
-                      <form className="chip" action={deleteVisitorVehicleAction} key={vehicle.id}>
-                        <input name="condominiumId" type="hidden" value={condominium.id} />
-                        <input name="visitorVehicleId" type="hidden" value={vehicle.id} />
-                        <span>{vehicle.plate}</span>
-                        <button className="secondary compact-button" type="submit">
-                          Remover
-                        </button>
-                      </form>
-                    ))}
-                  </div>
-                </div>
-
-                <form action={deleteVisitorAction}>
-                  <input name="condominiumId" type="hidden" value={condominium.id} />
-                  <input name="visitorId" type="hidden" value={visitor.id} />
-                  <button className="secondary" type="submit">
-                    Remover visitante
-                  </button>
-                </form>
-              </article>
-            );
-          })}
+        <div className="section-heading">
+          <div>
+            <h2>Visitantes Cadastrados ({visitors.length})</h2>
+            <p className="section-description">
+              Lista de pessoas autorizadas, veículos registrados e histórico de entradas por unidade.
+            </p>
+          </div>
         </div>
-        {!visitors.length ? <p className="muted">Nenhum visitante encontrado.</p> : null}
-      </section>
 
-      <section className="admin-section">
-        <h2>Historico por unidade</h2>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Quando</th>
-                <th>Visitante</th>
-                <th>Unidade</th>
-                <th>Observações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visits.map((visit) => (
-                <tr key={visit.id}>
-                  <td>{formatDate(visit.occurred_at, condominium.timezone)}</td>
-                  <td>{visitorsById.get(visit.visitor_id)?.full_name ?? "Visitante removido"}</td>
-                  <td>{unitLabel(unitsById.get(visit.unit_id))}</td>
-                  <td>{visit.notes ?? "-"}</td>
+        {visitors.length === 0 ? (
+          <div className="empty-state">
+            <strong>Nenhum visitante encontrado</strong>
+            <p>Nenhum registro corresponde aos filtros ou termos pesquisados.</p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Visitante</th>
+                  <th>Contato & Documento</th>
+                  <th>Veículos (Placas)</th>
+                  <th>Histórico de Unidades</th>
+                  <th style={{ textAlign: "right" }}>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!visits.length ? <p className="muted">Nenhum histórico encontrado.</p> : null}
+              </thead>
+              <tbody>
+                {visitors.map((visitor) => {
+                  const visitorVehicles = vehiclesByVisitor.get(visitor.id) ?? [];
+                  const visitorVisits = visitsByVisitor.get(visitor.id) ?? [];
+
+                  return (
+                    <tr key={visitor.id}>
+                      <td>
+                        <strong>{visitor.full_name}</strong>
+                        {visitor.notes ? (
+                          <small className="muted" style={{ display: "block", marginTop: "2px" }}>
+                            {visitor.notes}
+                          </small>
+                        ) : null}
+                      </td>
+
+                      <td>
+                        <div style={{ display: "grid", gap: "2px", fontSize: "0.85rem" }}>
+                          {visitor.document ? (
+                            <span>
+                              📄 <strong>{visitor.document}</strong>
+                            </span>
+                          ) : null}
+                          {visitor.phone ? <span>📞 {visitor.phone}</span> : null}
+                          {!visitor.document && !visitor.phone ? (
+                            <span className="muted">Sem contato registrado</span>
+                          ) : null}
+                        </div>
+                      </td>
+
+                      <td>
+                        <div style={{ display: "grid", gap: "4px", fontSize: "0.85rem" }}>
+                          {visitorVehicles.map((v) => (
+                            <div key={v.id} style={{ alignItems: "center", display: "flex", gap: "6px" }}>
+                              <span className="status-badge" style={{ background: "#f1f5f9", color: "#0f172a" }}>
+                                🚗 {v.plate}
+                              </span>
+                              <DeleteVisitorButton
+                                deleteAction={deleteVisitorVehicleAction}
+                                entityName={v.plate}
+                                idFieldName="visitorVehicleId"
+                                idValue={v.id}
+                                label="x"
+                              />
+                            </div>
+                          ))}
+                          {/* Adicionar Placa Rápida */}
+                          <details className="record-details" style={{ marginTop: "4px" }}>
+                            <summary style={{ fontSize: "0.75rem" }}>+ Placa</summary>
+                            <form
+                              action={createVisitorVehicleAction}
+                              className="edit-visitor-form admin-form"
+                              style={{ width: "260px" }}
+                            >
+                              <input name="condominiumId" type="hidden" value={context.condominium.id} />
+                              <input name="visitorId" type="hidden" value={visitor.id} />
+                              <label>
+                                Nova Placa
+                                <input name="plate" placeholder="ABC1D23" required />
+                              </label>
+                              <button style={{ marginTop: "6px", width: "100%" }} type="submit">
+                                Associar Placa
+                              </button>
+                            </form>
+                          </details>
+                        </div>
+                      </td>
+
+                      <td>
+                        <div style={{ display: "grid", gap: "2px", fontSize: "0.85rem" }}>
+                          {visitorVisits.slice(0, 3).map((visit) => {
+                            const unit = unitsById.get(visit.unit_id);
+                            return (
+                              <span key={visit.id}>
+                                📍 <strong>{unit ? formatUnitLabel(unit) : "Unidade"}</strong>
+                                <small className="muted" style={{ marginLeft: "4px" }}>
+                                  ({formatDate(visit.occurred_at, context.condominium.timezone)})
+                                </small>
+                              </span>
+                            );
+                          })}
+                          {visitorVisits.length === 0 ? (
+                            <span className="muted">Nenhuma visita registrada</span>
+                          ) : null}
+
+                          {/* Registrar Visita Manual */}
+                          <details className="record-details" style={{ marginTop: "4px" }}>
+                            <summary style={{ fontSize: "0.75rem" }}>+ Visita</summary>
+                            <form
+                              action={createVisitorUnitVisitAction}
+                              className="edit-visitor-form admin-form"
+                              style={{ width: "300px" }}
+                            >
+                              <input name="condominiumId" type="hidden" value={context.condominium.id} />
+                              <input name="visitorId" type="hidden" value={visitor.id} />
+                              <label>
+                                Unidade Visitada *
+                                <select name="unitId" required>
+                                  <option value="">Selecione a Unidade</option>
+                                  {units.map((u) => (
+                                    <option key={u.id} value={u.id}>
+                                      {formatUnitLabel(u)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                Observações
+                                <input name="notes" placeholder="Ex: Entrega, familiar..." />
+                              </label>
+                              <button style={{ marginTop: "6px", width: "100%" }} type="submit">
+                                Registrar Visita
+                              </button>
+                            </form>
+                          </details>
+                        </div>
+                      </td>
+
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                        {/* Modal Inline de Edição */}
+                        <details className="record-details">
+                          <summary>Editar</summary>
+                          <form action={updateVisitorAction} className="edit-visitor-form admin-form">
+                            <input name="condominiumId" type="hidden" value={context.condominium.id} />
+                            <input name="visitorId" type="hidden" value={visitor.id} />
+
+                            <h3 style={{ margin: "0 0 10px" }}>Editar {visitor.full_name}</h3>
+
+                            <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr" }}>
+                              <label>
+                                Nome Completo *
+                                <input defaultValue={visitor.full_name} name="fullName" required />
+                              </label>
+
+                              <label>
+                                CPF ou RG
+                                <input defaultValue={visitor.document ?? ""} name="document" />
+                              </label>
+
+                              <label>
+                                Telefone
+                                <input defaultValue={visitor.phone ?? ""} name="phone" />
+                              </label>
+
+                              <label>
+                                Observações
+                                <textarea defaultValue={visitor.notes ?? ""} name="notes" rows={2} />
+                              </label>
+                            </div>
+
+                            <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                              <button style={{ flex: 1 }} type="submit">
+                                Salvar Alterações
+                              </button>
+                            </div>
+                          </form>
+                        </details>
+
+                        <DeleteVisitorButton
+                          deleteAction={deleteVisitorAction}
+                          entityName={visitor.full_name}
+                          idFieldName="visitorId"
+                          idValue={visitor.id}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   );
