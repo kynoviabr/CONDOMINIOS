@@ -584,45 +584,65 @@ flowchart LR
 3. `public.residents`: Mantém os dados cadastrais do morador no condomínio (`condominium_id`), status de atividade (`status = 'active'` ou `'blocked'`).
 4. `public.resident_units`: Associa o morador a uma ou mais unidades físicas do condomínio (`unit_id`), indicando relação (`owner`, `resident`, `tenant`, etc.) e se é unidade principal (`is_primary`).
 
-### 20.2 Regras de Autorização e RLS dos Convites (`access_invites`)
-A inserção e manutenção de convites digitais obedece à política de segurança em nível de linha (RLS) sem expor a `service_role` ao frontend:
+### 20.2 Matriz de Privilégios (Princípio do Menor Acesso)
+Todas as permissões foram estritamente restritas no PostgreSQL para evitar brechas de segurança:
 
-- **Inserção (`access_invites_insert_authorized`)**:
-  - `auth.uid()` deve corresponder ao `profile_id` de um registro ativo em `public.residents`.
-  - O morador deve possuir vínculo ativo em `public.resident_units` para a unidade (`unit_id`) especificada no convite.
-  - `tenant_id` e `condominium_id` devem coincidir em toda a cadeia (`profiles`, `residents`, `resident_units`, `access_invites`).
-  - Usuários anônimos (`anon`) têm privilégios revogados (`REVOKE ALL`).
-- **Atualização (`access_invites_update_authorized`)**:
-  - Permite que o morador titular cancele convites ativos de sua própria unidade.
-- **Função Auxiliar (`public.is_current_resident_for_unit`)**:
-  - Declarada com `SECURITY DEFINER` e `SET search_path = public`.
-  - Valida explicitamente `r.profile_id = auth.uid()`.
-  - Execução restrita a `authenticated` (`REVOKE EXECUTE FROM public, anon`).
+| Tabela | Papel `anon` | Papel `authenticated` | `service_role` | Justificativa / Observação |
+| :--- | :--- | :--- | :--- | :--- |
+| `public.access_invites` | `REVOKE ALL` | `SELECT`, `INSERT`, `UPDATE` | `ALL` | Moradores não podem fazer `DELETE` direto (apenas cancelamento via `UPDATE` de status). Sem `TRIGGER`, `REFERENCES` ou `TRUNCATE`. |
+| `public.resident_access_approvals` | `REVOKE ALL` | `SELECT`, `INSERT`, `UPDATE` | `ALL` | Operadores inserem solicitações; moradores atualizam status (aprovado/recusado). Sem `DELETE`, `TRIGGER` ou `TRUNCATE`. |
+| `public.resident_favorite_visitors` | `REVOKE ALL` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` | `ALL` | Moradores gerenciam sua lista de visitantes frequentes. Sem `TRIGGER` ou `TRUNCATE`. |
+| `public.resident_units` | `REVOKE ALL` | `SELECT` | `ALL` | Somente leitura para vínculo de morador. Alterações cadastrais pertencem à administração. |
+| `public.access_events` | `REVOKE ALL` | `SELECT`, `INSERT`, `UPDATE` | `ALL` | Histórico auditável de passagens físicas. Sem `DELETE`, `TRIGGER` ou `TRUNCATE`. |
+| `public.access_invite_validations` | `REVOKE ALL` | `SELECT`, `INSERT` | `ALL` | Registro de conferência na portaria. Sem `DELETE` ou `UPDATE`. |
+| `public.visitor_vehicle_accesses` | `REVOKE ALL` | `SELECT`, `INSERT`, `UPDATE` | `ALL` | Controle de veículos temporários no condomínio. |
 
-### 20.3 Funcionamento do QR Code Seguro
+### 20.3 Estratégia de Políticas RLS e Remoção de SECURITY DEFINER
+- **Remoção de Funções SECURITY DEFINER Públicas**:
+  - A função `public.is_current_resident_for_unit` foi completamente **removida** do schema `public`, eliminando superfícies de ataque e privilégios elevados.
+- **Otimização de Subplanos**:
+  - As políticas RLS utilizam escalares cacheados por consulta `(select auth.uid())` e `(select public.current_tenant_id())`, evitando reavaliações por linha.
+- **Isolamento Estrito**:
+  - Toda inserção e leitura em `public.access_invites` exige validação simultânea de:
+    1. `tenant_id = (select public.current_tenant_id())`
+    2. `profile_id = (select auth.uid())` com morador ativo (`status = 'active'`)
+    3. `unit_id` vinculada em `public.resident_units`
+    4. Coincidência estrita de `condominium_id` em toda a cadeia.
+
+### 20.4 Funcionamento do QR Code Seguro
 1. **Geração**: Ao criar um convite no PWA, um token criptograficamente seguro de 32 bytes (`randomBytes(32).toString("base64url")`) é gerado.
 2. **Armazenamento Seguro**: Apenas o hash SHA-256 (`qr_token_hash`) é persistido no banco de dados. O token bruto nunca é salvo em texto claro.
 3. **Payload**: O QR Code exibe o payload no formato `inviteId.token`.
 4. **Validação na Portaria**: A portaria lê o QR Code, extrai o `inviteId` e o `token`, calcula o hash SHA-256 e compara com o `qr_token_hash` indexado no banco, conferindo validade temporal, limites de uso (`max_uses`) e blacklist.
 
-### 20.4 Fluxo de Aprovação em Tempo Real (Portaria ↔ Mobile PWA)
+### 20.5 Fluxo Operacional de Aprovações (Portaria ↔ Mobile PWA)
+O fluxo atual é orquestrado de forma assíncrona e resiliente via Server Actions e revalidação de rotas Next.js:
+
 1. **Solicitação na Guarita**: Quando um visitante sem convite chega à portaria, o operador preenche o formulário de despacho na aplicação Web Portaria (`apps/web-portaria`).
 2. **Registro Pendente**: Um registro é criado em `public.resident_access_approvals` com `status = 'pending'`.
-3. **Notificação no PWA**: O morador autenticado visualiza instantaneamente a solicitação pendente no painel de aprovações do Mobile PWA (`apps/mobile-pwa/src/app/home/invites`).
-4. **Decisão do Morador**: O morador clica em "Autorizar" ou "Recusar". A Server Action atualiza `status = 'approved'` ou `'rejected'` com timestamp `decided_at` e `decided_by = auth.uid()`.
-5. **Abertura do Acesso**: A portaria detecta a autorização e procede com a liberação física e registro em `access_events`.
+3. **Visualização no PWA**: O morador autenticado visualiza a solicitação pendente no painel de aprovações do Mobile PWA (`apps/mobile-pwa/src/app/home/invites`).
+4. **Decisão do Morador**: O morador clica em "Autorizar" ou "Recusar". A Server Action atualiza `status = 'approved'` ou `'rejected'` com timestamp `decided_at` e `decided_by = (select auth.uid())`.
+5. **Liberação**: A portaria consulta o status atualizado e procede com a liberação física e registro em `access_events`.
 
-### 20.5 Como Executar os Testes
-Para rodar os testes automatizados com cobertura completa das regras de convites, unidades, veículos, fornecedores e funcionários:
+### 20.6 Testes Automatizados e de Integração RLS
+A suíte de testes de banco e RLS está localizada em [`packages/database/src/invites-rls.test.ts`](file:///Users/fernandoluizbraidotti/Documents/CONDOMINIOS/packages/database/src/invites-rls.test.ts) e cobre:
 
+1. Morador ativo criando convite para sua unidade vinculada (Permitido).
+2. Morador criando convite para unidade de outro morador (Negado).
+3. Morador tentando acessar outro condomínio (Negado).
+4. Morador inativo criando convite (Negado).
+5. Usuário autenticado sem vínculo residencial (Negado).
+6. Usuário anônimo criando ou consultando convites (Negado).
+7. Morador atualizando seu próprio convite (Permitido).
+8. Morador atualizando convite de outro morador (Negado).
+9. Tentativa de DELETE por morador não autorizado (Negado).
+
+Comando de execução:
 ```bash
-# Execução de todos os testes unitários e de domínio
 pnpm test
-
-# Execução em modo watch para desenvolvimento
-pnpm vitest
 ```
 
-### 20.6 Limitações e Próximos Passos
-- **Notificações Push Nativas (Web Push API)**: Atualmente o PWA atualiza o painel por Server Actions e revalidação de rota; a inclusão de push notifications pelo Service Worker permitirá alertas em segundo plano com a tela bloqueada.
-- **Hardware IoT**: Integração de webhooks de abertura automática direta com controladoras de cancela (Intelbras/Control iD).
+### 20.7 Limitações e Funcionalidades Futuras
+- **Supabase Realtime (WebSockets)**: Atualmente as atualizações dependem de polling ou revalidação de rota por Server Actions; a inscrição em canais Realtime (`supabase.channel`) é planejada para sincronização instantânea na tela do morador e operador sem necessidade de refresh manual.
+- **Notificações Push Web (Web Push API / Service Worker)**: Alertas sonoros e banners no smartphone quando a tela estiver bloqueada.
+- **Hardware IoT**: Integração de webhooks de abertura automática direta com controladoras de cancela físicas.
