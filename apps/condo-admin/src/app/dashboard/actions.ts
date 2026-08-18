@@ -1,6 +1,6 @@
 "use server";
 
-import { normalizeNullableText, parseNonNegativeInteger } from "@kynovia/database";
+import { parseNonNegativeInteger } from "@kynovia/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
@@ -12,7 +12,6 @@ function formValue(formData: FormData, key: string) {
 }
 
 const settingsManagerRoles = ["condominium_admin", "syndic", "manager"];
-const unitManagerRoles = [...settingsManagerRoles, "resident_manager"];
 
 function requireCondoManager(role: string, allowedRoles: string[]) {
   if (!allowedRoles.includes(role)) {
@@ -29,11 +28,6 @@ function revalidateCondoPages() {
 function redirectToSettings(status: string) {
   revalidateCondoPages();
   redirect(`/dashboard/settings?status=${status}`);
-}
-
-function redirectToUnits(status: string) {
-  revalidateCondoPages();
-  redirect(`/dashboard/units?status=${status}`);
 }
 
 async function ensureCondominiumAccess(condominiumId: string, allowedRoles: string[]) {
@@ -106,77 +100,4 @@ export async function updateOperationalSettingsAction(formData: FormData) {
   }
 
   redirectToSettings("settings_updated");
-}
-
-export async function createUnitAction(formData: FormData) {
-  const condominiumId = formValue(formData, "condominiumId");
-  const number = formValue(formData, "number");
-
-  if (!condominiumId || !number) {
-    redirectToUnits("missing_unit_fields");
-  }
-
-  const { profile, supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
-  const { error } = await supabase.from("units").insert({
-    tenant_id: profile.tenantId,
-    condominium_id: condominiumId,
-    block: normalizeNullableText(formValue(formData, "block")),
-    number,
-    floor: normalizeNullableText(formValue(formData, "floor"))
-  });
-
-  if (error) {
-    redirectToUnits("create_unit_failed");
-  }
-
-  redirectToUnits("unit_created");
-}
-
-export async function updateUnitAction(formData: FormData) {
-  const condominiumId = formValue(formData, "condominiumId");
-  const unitId = formValue(formData, "unitId");
-  const number = formValue(formData, "number");
-
-  if (!condominiumId || !unitId || !number) {
-    redirectToUnits("missing_unit_fields");
-  }
-
-  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
-  const { error } = await supabase
-    .from("units")
-    .update({
-      block: normalizeNullableText(formValue(formData, "block")),
-      number,
-      floor: normalizeNullableText(formValue(formData, "floor"))
-    })
-    .eq("id", unitId)
-    .eq("condominium_id", condominiumId);
-
-  if (error) {
-    redirectToUnits("update_unit_failed");
-  }
-
-  redirectToUnits("unit_updated");
-}
-
-export async function deleteUnitAction(formData: FormData) {
-  const condominiumId = formValue(formData, "condominiumId");
-  const unitId = formValue(formData, "unitId");
-
-  if (!condominiumId || !unitId) {
-    redirectToUnits("missing_unit_id");
-  }
-
-  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
-  const { error } = await supabase
-    .from("units")
-    .delete()
-    .eq("id", unitId)
-    .eq("condominium_id", condominiumId);
-
-  if (error) {
-    redirectToUnits("delete_unit_failed");
-  }
-
-  redirectToUnits("unit_deleted");
 }

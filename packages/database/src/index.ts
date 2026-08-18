@@ -95,4 +95,16 @@ export {
   sanitizeVehicleSearch
 } from "./vehicles";
 export type { ResidentVehicleStatus, ResidentVehicleType } from "./vehicles";
+export {
+  formatUnitFloorLabel,
+  formatUnitLabel,
+  isUnitType,
+  normalizeUnitBlock,
+  normalizeUnitFloor,
+  normalizeUnitNumber,
+  parseUnitMetadata,
+  sanitizeUnitSearch,
+  unitTypes
+} from "./units";
+export type { UnitMetadata, UnitType } from "./units";
 export { createBrowserSupabaseClient } from "./supabase";

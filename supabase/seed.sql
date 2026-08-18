@@ -68,19 +68,34 @@ on conflict (resident_id, unit_id) do update
 set relationship = excluded.relationship,
     is_primary = excluded.is_primary;
 
-insert into public.resident_vehicles (id, tenant_id, condominium_id, resident_id, plate, label, status)
+insert into public.resident_vehicles (
+  id,
+  tenant_id,
+  condominium_id,
+  resident_id,
+  unit_id,
+  plate,
+  label,
+  status,
+  vehicle_type
+)
 values (
   '00000000-0000-0000-0000-000000000501',
   '00000000-0000-0000-0000-000000000001',
   '00000000-0000-0000-0000-000000000101',
   '00000000-0000-0000-0000-000000000401',
+  '00000000-0000-0000-0000-000000000301',
   'ABC1D23',
   'Carro principal',
-  'active'
+  'active',
+  'automobile'
 )
 on conflict (condominium_id, plate) do update
-set label = excluded.label,
-    status = excluded.status;
+set resident_id = excluded.resident_id,
+    unit_id = excluded.unit_id,
+    label = excluded.label,
+    status = excluded.status,
+    vehicle_type = excluded.vehicle_type;
 
 insert into public.visitors (id, tenant_id, condominium_id, full_name, document, phone, notes)
 values (
@@ -336,19 +351,34 @@ on conflict (resident_id, unit_id) do update
 set relationship = excluded.relationship,
     is_primary = excluded.is_primary;
 
-insert into public.resident_vehicles (id, tenant_id, condominium_id, resident_id, plate, label, status)
+insert into public.resident_vehicles (
+  id,
+  tenant_id,
+  condominium_id,
+  resident_id,
+  unit_id,
+  plate,
+  label,
+  status,
+  vehicle_type
+)
 values (
   '00000000-0000-0000-0000-000000010501',
   '00000000-0000-0000-0000-000000000001',
   '00000000-0000-0000-0000-000000010101',
   '00000000-0000-0000-0000-000000010401',
+  '00000000-0000-0000-0000-000000010301',
   'PIL1A01',
   'Veiculo principal piloto',
-  'active'
+  'active',
+  'automobile'
 )
 on conflict (condominium_id, plate) do update
-set label = excluded.label,
-    status = excluded.status;
+set resident_id = excluded.resident_id,
+    unit_id = excluded.unit_id,
+    label = excluded.label,
+    status = excluded.status,
+    vehicle_type = excluded.vehicle_type;
 
 insert into public.visitors (id, tenant_id, condominium_id, full_name, document, phone, notes)
 values
