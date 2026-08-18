@@ -10,7 +10,9 @@ export default [
       "**/coverage/**",
       "**/next-env.d.ts",
       "**/*.config.js",
-      "**/*.config.mjs"
+      "**/*.config.mjs",
+      "supabase/.temp/**",
+      "supabase/.branches/**"
     ]
   },
   js.configs.recommended,

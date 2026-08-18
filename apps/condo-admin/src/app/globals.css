@@ -413,7 +413,8 @@ summary:focus-visible {
   display: none;
 }
 
-.edit-vehicle-form {
+.edit-vehicle-form,
+.edit-unit-form {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
