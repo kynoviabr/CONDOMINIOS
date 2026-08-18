@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:rls": "supabase test db",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean"
   },
