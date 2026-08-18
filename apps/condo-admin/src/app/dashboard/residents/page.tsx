@@ -200,29 +200,36 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
-      <section className="toolbar" style={{ margin: "0 0 24px", padding: "16px" }}>
+      <section className="toolbar" style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", margin: "0 0 24px", padding: "16px" }}>
         <form
-          className="resident-filter-form"
+          action="/dashboard/residents"
+          method="GET"
           style={{
             alignItems: "flex-end",
-            display: "grid",
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "nowrap",
             gap: "12px",
-            gridTemplateColumns: "minmax(200px, 2fr) minmax(180px, 1.2fr) minmax(130px, 1fr) auto auto",
             width: "100%"
           }}
         >
-          <label className="filter-search-field" style={{ margin: 0 }}>
-            Buscar
+          <div style={{ display: "flex", flex: "3 1 200px", flexDirection: "column", gap: "6px", minWidth: "160px" }}>
+            <span style={{ color: "#475569", fontSize: "0.82rem", fontWeight: 500 }}>Buscar</span>
             <input
               defaultValue={searchTerm}
               name="q"
               placeholder="Nome, CPF, telefone ou e-mail"
-              style={{ minHeight: "38px" }}
+              style={{ border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem", height: "38px", minHeight: "38px", padding: "0 12px", width: "100%" }}
             />
-          </label>
-          <label className="filter-unit-field" style={{ margin: 0 }}>
-            Unidade
-            <select defaultValue={validSelectedUnitId} name="unitId" style={{ minHeight: "38px" }}>
+          </div>
+
+          <div style={{ display: "flex", flex: "1.5 1 150px", flexDirection: "column", gap: "6px", maxWidth: "220px", minWidth: "130px" }}>
+            <span style={{ color: "#475569", fontSize: "0.82rem", fontWeight: 500 }}>Unidade</span>
+            <select
+              defaultValue={validSelectedUnitId}
+              name="unitId"
+              style={{ border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem", height: "38px", minHeight: "38px", padding: "0 10px", width: "100%" }}
+            >
               <option value="">Todas as unidades</option>
               {units.map((unit) => (
                 <option key={unit.id} value={unit.id}>
@@ -230,10 +237,15 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                 </option>
               ))}
             </select>
-          </label>
-          <label className="filter-status-field" style={{ margin: 0 }}>
-            Status
-            <select defaultValue={statusFilter} name="status" style={{ minHeight: "38px" }}>
+          </div>
+
+          <div style={{ display: "flex", flex: "1 1 120px", flexDirection: "column", gap: "6px", maxWidth: "160px", minWidth: "110px" }}>
+            <span style={{ color: "#475569", fontSize: "0.82rem", fontWeight: 500 }}>Status</span>
+            <select
+              defaultValue={statusFilter}
+              name="status"
+              style={{ border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem", height: "38px", minHeight: "38px", padding: "0 10px", width: "100%" }}
+            >
               <option value="">Todos</option>
               {residentStatuses.map((status) => (
                 <option key={status} value={status}>
@@ -241,12 +253,22 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                 </option>
               ))}
             </select>
-          </label>
+          </div>
+
           <button
-            className="filter-submit-button"
             style={{
+              alignItems: "center",
+              background: "#6366f1",
+              border: "none",
+              borderRadius: "6px",
+              color: "#ffffff",
+              cursor: "pointer",
+              display: "inline-flex",
+              flex: "0 0 auto",
               fontSize: "0.88rem",
+              fontWeight: 500,
               height: "38px",
+              justifyContent: "center",
               margin: 0,
               minHeight: "38px",
               padding: "0 18px",
@@ -257,15 +279,25 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           >
             Filtrar
           </button>
+
           <Link
-            className="button-link secondary filter-clear-button"
             href="/dashboard/residents"
             style={{
+              alignItems: "center",
+              background: "#f1f5f9",
+              border: "1px solid #cbd5e1",
+              borderRadius: "6px",
+              color: "#334155",
+              display: "inline-flex",
+              flex: "0 0 auto",
               fontSize: "0.88rem",
+              fontWeight: 500,
               height: "38px",
+              justifyContent: "center",
               margin: 0,
               minHeight: "38px",
               padding: "0 16px",
+              textDecoration: "none",
               whiteSpace: "nowrap",
               width: "auto"
             }}
