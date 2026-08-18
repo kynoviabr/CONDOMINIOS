@@ -31,7 +31,9 @@ export {
 } from "./condominiums";
 export {
   buildInviteQrPayload,
+  canResidentCreateInviteForUnit,
   hasPlateAuthorization,
+  hashInviteToken,
   inviteStatuses,
   inviteTypes,
   inviteValidationResults,

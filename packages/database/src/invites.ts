@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export const inviteStatuses = ["active", "cancelled", "expired", "used"] as const;
 export const inviteTypes = ["single", "recurring"] as const;
 export const inviteValidationResults = [
@@ -40,6 +42,10 @@ export function normalizeInviteUsageLimit(value: string, fallback = 1) {
   return parsed;
 }
 
+export function hashInviteToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 export function buildInviteQrPayload(inviteId: string, token: string) {
   return `${inviteId}.${token}`;
 }
@@ -57,4 +63,28 @@ export function parseInviteQrPayload(payload: string) {
 
 export function hasPlateAuthorization(plate: string | null | undefined) {
   return typeof plate === "string" && plate.trim().length > 0;
+}
+
+export function canResidentCreateInviteForUnit(params: {
+  authUserId: string | null;
+  condominiumId: string;
+  residentCondominiumId: string;
+  residentProfileId: string;
+  residentStatus: string;
+  residentUnitIds: string[];
+  targetUnitId: string;
+}): boolean {
+  if (!params.authUserId || params.authUserId !== params.residentProfileId) {
+    return false;
+  }
+
+  if (params.residentStatus !== "active") {
+    return false;
+  }
+
+  if (params.condominiumId !== params.residentCondominiumId) {
+    return false;
+  }
+
+  return params.residentUnitIds.includes(params.targetUnitId);
 }

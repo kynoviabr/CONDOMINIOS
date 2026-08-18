@@ -565,3 +565,64 @@ Atualizar esta documentação sempre que ocorrer uma destas mudanças:
 - conclusão de uma pendência listada neste checkpoint.
 
 Registrar a data, a branch/versão e o resultado das validações. Nunca adicionar senhas, tokens ou chaves privadas.
+
+## 20. Mobile PWA e Fluxo Operacional de Convites & Aprovações
+
+### 20.1 Cadeia de Identidade e Autenticação do Morador
+A identidade do morador segue uma cadeia relacional estrita e multi-tenant:
+
+```mermaid
+flowchart LR
+    U["auth.users (Supabase Auth)"] --> P["public.profiles (id = auth.uid())"]
+    P --> R["public.residents (profile_id = profiles.id)"]
+    R --> RU["public.resident_units (resident_id, unit_id)"]
+    RU --> UN["public.units (id = unit_id)"]
+```
+
+1. `auth.users`: Gerencia credenciais (e-mail e senha) e tokens JWT.
+2. `public.profiles`: Armazena tenant do usuário (`tenant_id`) e papel de acesso (`resident`).
+3. `public.residents`: Mantém os dados cadastrais do morador no condomínio (`condominium_id`), status de atividade (`status = 'active'` ou `'blocked'`).
+4. `public.resident_units`: Associa o morador a uma ou mais unidades físicas do condomínio (`unit_id`), indicando relação (`owner`, `resident`, `tenant`, etc.) e se é unidade principal (`is_primary`).
+
+### 20.2 Regras de Autorização e RLS dos Convites (`access_invites`)
+A inserção e manutenção de convites digitais obedece à política de segurança em nível de linha (RLS) sem expor a `service_role` ao frontend:
+
+- **Inserção (`access_invites_insert_authorized`)**:
+  - `auth.uid()` deve corresponder ao `profile_id` de um registro ativo em `public.residents`.
+  - O morador deve possuir vínculo ativo em `public.resident_units` para a unidade (`unit_id`) especificada no convite.
+  - `tenant_id` e `condominium_id` devem coincidir em toda a cadeia (`profiles`, `residents`, `resident_units`, `access_invites`).
+  - Usuários anônimos (`anon`) têm privilégios revogados (`REVOKE ALL`).
+- **Atualização (`access_invites_update_authorized`)**:
+  - Permite que o morador titular cancele convites ativos de sua própria unidade.
+- **Função Auxiliar (`public.is_current_resident_for_unit`)**:
+  - Declarada com `SECURITY DEFINER` e `SET search_path = public`.
+  - Valida explicitamente `r.profile_id = auth.uid()`.
+  - Execução restrita a `authenticated` (`REVOKE EXECUTE FROM public, anon`).
+
+### 20.3 Funcionamento do QR Code Seguro
+1. **Geração**: Ao criar um convite no PWA, um token criptograficamente seguro de 32 bytes (`randomBytes(32).toString("base64url")`) é gerado.
+2. **Armazenamento Seguro**: Apenas o hash SHA-256 (`qr_token_hash`) é persistido no banco de dados. O token bruto nunca é salvo em texto claro.
+3. **Payload**: O QR Code exibe o payload no formato `inviteId.token`.
+4. **Validação na Portaria**: A portaria lê o QR Code, extrai o `inviteId` e o `token`, calcula o hash SHA-256 e compara com o `qr_token_hash` indexado no banco, conferindo validade temporal, limites de uso (`max_uses`) e blacklist.
+
+### 20.4 Fluxo de Aprovação em Tempo Real (Portaria ↔ Mobile PWA)
+1. **Solicitação na Guarita**: Quando um visitante sem convite chega à portaria, o operador preenche o formulário de despacho na aplicação Web Portaria (`apps/web-portaria`).
+2. **Registro Pendente**: Um registro é criado em `public.resident_access_approvals` com `status = 'pending'`.
+3. **Notificação no PWA**: O morador autenticado visualiza instantaneamente a solicitação pendente no painel de aprovações do Mobile PWA (`apps/mobile-pwa/src/app/home/invites`).
+4. **Decisão do Morador**: O morador clica em "Autorizar" ou "Recusar". A Server Action atualiza `status = 'approved'` ou `'rejected'` com timestamp `decided_at` e `decided_by = auth.uid()`.
+5. **Abertura do Acesso**: A portaria detecta a autorização e procede com a liberação física e registro em `access_events`.
+
+### 20.5 Como Executar os Testes
+Para rodar os testes automatizados com cobertura completa das regras de convites, unidades, veículos, fornecedores e funcionários:
+
+```bash
+# Execução de todos os testes unitários e de domínio
+pnpm test
+
+# Execução em modo watch para desenvolvimento
+pnpm vitest
+```
+
+### 20.6 Limitações e Próximos Passos
+- **Notificações Push Nativas (Web Push API)**: Atualmente o PWA atualiza o painel por Server Actions e revalidação de rota; a inclusão de push notifications pelo Service Worker permitirá alertas em segundo plano com a tela bloqueada.
+- **Hardware IoT**: Integração de webhooks de abertura automática direta com controladoras de cancela (Intelbras/Control iD).
