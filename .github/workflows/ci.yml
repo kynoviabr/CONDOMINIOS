@@ -43,8 +43,31 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
+      - name: Test (TypeScript unit)
         run: pnpm test
 
       - name: Build
         run: pnpm build
+
+  test-rls:
+    name: PostgreSQL RLS Integration Tests (pgTAP)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase Local
+        run: supabase start
+
+      - name: Run PostgreSQL RLS Tests (pgTAP)
+        run: supabase test db
+
+      - name: Stop Supabase Local
+        if: always()
+        run: supabase stop

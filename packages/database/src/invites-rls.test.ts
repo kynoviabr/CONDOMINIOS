@@ -1,29 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "./types";
 
 /**
- * Testes de Integracao de RLS para o Fluxo de Convites (access_invites)
+ * Testes Unitários de Referência Conceitual em TypeScript para Regras de Domínio de Convites
  *
- * Valida a aplicacao estrita das politicas:
- * 1. access_invites_select_accessible
- * 2. access_invites_insert_authorized
- * 3. access_invites_update_authorized
- * 4. access_invites_delete_operators
+ * ATENÇÃO: Esta suíte contém testes unitários conceituais em TypeScript para verificação
+ * rápida da lógica de domínio em memória.
  *
- * Cenarios Obrigatorios:
- * - Morador ativo criando convite para sua unidade vinculada: PERMITIDO
- * - Morador criando convite para unidade de outro morador: NEGADO
- * - Morador tentando acessar outro condominio: NEGADO
- * - Morador inativo criando convite: NEGADO
- * - Usuario autenticado sem vinculo residencial: NEGADO
- * - Usuario anonimo criando ou consultando convite: NEGADO
- * - Morador atualizando seu proprio convite: PERMITIDO
- * - Morador atualizando convite de outro morador: NEGADO
- * - Tentativa de DELETE por morador: NEGADA (apenas operadores)
+ * Os testes reais de banco de dados, execução das migrations, verificação de grants
+ * e aplicação efetiva de Row Level Security (RLS) no PostgreSQL são executados via pgTAP em:
+ * `supabase/tests/database/access_invites_rls.test.sql`
+ * Comando: `pnpm test:rls` (ou `supabase test db`)
  */
 
-type RlsContext = {
+type ReferenceContext = {
   authUid: string | null;
   currentTenantId: string | null;
   isOperator: boolean;
@@ -54,127 +43,87 @@ type AccessInviteRecord = {
   visitor_name: string;
 };
 
-/**
- * Avaliador deterministico do predicado SQL RLS de access_invites
- * Espelha fielmente a logica declarada na migration 20260818193817_secure_mobile_pwa_invites_hardening.sql
- */
-function evaluateAccessInvitesSelectPolicy(
-  record: AccessInviteRecord,
-  ctx: RlsContext
+function evaluateAccessInvitesSelectRule(
+  row: AccessInviteRecord,
+  ctx: ReferenceContext
 ): boolean {
-  if (!ctx.authUid) return false;
-  if (ctx.isOperator) return true;
+  if (ctx.isOperator) {
+    return true;
+  }
+  if (!ctx.authUid || !ctx.currentTenantId) {
+    return false;
+  }
+  if (row.tenant_id !== ctx.currentTenantId) {
+    return false;
+  }
 
-  if (record.tenant_id !== ctx.currentTenantId) return false;
-
-  return ctx.residents.some(
-    (r) =>
-      r.id === record.resident_id &&
+  return ctx.residents.some((r) => {
+    if (
+      r.id === row.resident_id &&
       r.profileId === ctx.authUid &&
       r.status === "active" &&
-      r.tenantId === record.tenant_id &&
-      r.condominiumId === record.condominium_id &&
-      ctx.residentUnits.some(
+      r.tenantId === row.tenant_id &&
+      r.condominiumId === row.condominium_id
+    ) {
+      return ctx.residentUnits.some(
         (ru) =>
           ru.residentId === r.id &&
-          ru.unitId === record.unit_id &&
-          ru.condominiumId === record.condominium_id &&
-          ru.tenantId === record.tenant_id
-      )
-  );
+          ru.unitId === row.unit_id &&
+          ru.condominiumId === row.condominium_id &&
+          ru.tenantId === row.tenant_id
+      );
+    }
+    return false;
+  });
 }
 
-function evaluateAccessInvitesInsertPolicy(
-  record: AccessInviteRecord,
-  ctx: RlsContext
+function evaluateAccessInvitesInsertRule(
+  row: AccessInviteRecord,
+  ctx: ReferenceContext
 ): boolean {
-  if (!ctx.authUid) return false;
-  if (ctx.isOperator) return true;
-
-  if (record.tenant_id !== ctx.currentTenantId) return false;
-
-  return ctx.residents.some(
-    (r) =>
-      r.id === record.resident_id &&
-      r.profileId === ctx.authUid &&
-      r.status === "active" &&
-      r.tenantId === record.tenant_id &&
-      r.condominiumId === record.condominium_id &&
-      ctx.residentUnits.some(
-        (ru) =>
-          ru.residentId === r.id &&
-          ru.unitId === record.unit_id &&
-          ru.condominiumId === record.condominium_id &&
-          ru.tenantId === record.tenant_id
-      )
-  );
+  return evaluateAccessInvitesSelectRule(row, ctx);
 }
 
-function evaluateAccessInvitesUpdatePolicy(
-  record: AccessInviteRecord,
-  ctx: RlsContext
+function evaluateAccessInvitesUpdateRule(
+  row: AccessInviteRecord,
+  ctx: ReferenceContext
 ): boolean {
-  if (!ctx.authUid) return false;
-  if (ctx.isOperator) return true;
-
-  if (record.tenant_id !== ctx.currentTenantId) return false;
-
-  return ctx.residents.some(
-    (r) =>
-      r.id === record.resident_id &&
-      r.profileId === ctx.authUid &&
-      r.status === "active" &&
-      r.tenantId === record.tenant_id &&
-      r.condominiumId === record.condominium_id &&
-      ctx.residentUnits.some(
-        (ru) =>
-          ru.residentId === r.id &&
-          ru.unitId === record.unit_id &&
-          ru.condominiumId === record.condominium_id &&
-          ru.tenantId === record.tenant_id
-      )
-  );
+  return evaluateAccessInvitesSelectRule(row, ctx);
 }
 
-function evaluateAccessInvitesDeletePolicy(
-  _record: AccessInviteRecord,
-  ctx: RlsContext
+function evaluateAccessInvitesDeleteRule(
+  _row: AccessInviteRecord,
+  ctx: ReferenceContext
 ): boolean {
-  if (!ctx.authUid) return false;
   return ctx.isOperator;
 }
 
-describe("Politicas RLS de Convites (access_invites)", () => {
-  const tenantA = "tenant-aaa-111";
-  const tenantB = "tenant-bbb-222";
-  const condoA = "condo-aaa-111";
-  const condoB = "condo-bbb-222";
+describe("Modelos Conceituais de Referência (Unitários TypeScript) para Convites", () => {
+  const tenantA = "tenant-a-uuid";
+  const tenantB = "tenant-b-uuid";
+  const condoA = "condo-a-uuid";
+  const condoB = "condo-b-uuid";
+  const unitA1 = "unit-a1-uuid";
+  const unitA2 = "unit-a2-uuid";
+  const userProfileId = "user-profile-001";
+  const residentActiveId = "res-active-001";
+  const residentInactiveId = "res-inactive-002";
 
-  const userActiveProfileId = "user-morador-ativo-001";
-  const residentActiveId = "res-ativo-001";
-  const unitA1 = "unit-bloco-g-31";
-  const unitA2 = "unit-bloco-g-32";
-
-  const userInactiveProfileId = "user-morador-inativo-002";
-  const residentInactiveId = "res-inativo-002";
-
-  const userWithoutResidentProfileId = "user-sem-residencia-003";
-
-  const mockDbState: RlsContext = {
-    authUid: userActiveProfileId,
+  const mockDbState: ReferenceContext = {
+    authUid: userProfileId,
     currentTenantId: tenantA,
     isOperator: false,
     residents: [
       {
         id: residentActiveId,
-        profileId: userActiveProfileId,
+        profileId: userProfileId,
         tenantId: tenantA,
         condominiumId: condoA,
         status: "active"
       },
       {
         id: residentInactiveId,
-        profileId: userInactiveProfileId,
+        profileId: userProfileId,
         tenantId: tenantA,
         condominiumId: condoA,
         status: "inactive"
@@ -186,127 +135,108 @@ describe("Politicas RLS de Convites (access_invites)", () => {
         unitId: unitA1,
         condominiumId: condoA,
         tenantId: tenantA
+      },
+      {
+        residentId: residentInactiveId,
+        unitId: unitA1,
+        condominiumId: condoA,
+        tenantId: tenantA
       }
     ]
   };
 
-  it("permite morador ativo criar convite para sua unidade vinculada", () => {
+  it("permite criacao de convite por morador ativo para sua unidade vinculada", () => {
     const invite: AccessInviteRecord = {
       id: "inv-001",
       tenant_id: tenantA,
       condominium_id: condoA,
       unit_id: unitA1,
       resident_id: residentActiveId,
-      visitor_name: "Visitante Autorizado",
-      plate: "ABC1D23",
+      visitor_name: "Visitante Valido",
+      plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    const allowed = evaluateAccessInvitesInsertPolicy(invite, mockDbState);
+    const allowed = evaluateAccessInvitesInsertRule(invite, mockDbState);
     expect(allowed).toBe(true);
   });
 
-  it("nega morador criar convite para unidade que nao pertence ao seu cadastro", () => {
-    const inviteForOtherUnit: AccessInviteRecord = {
+  it("nega criacao de convite para unidade de outro morador", () => {
+    const inviteOtherUnit: AccessInviteRecord = {
       id: "inv-002",
       tenant_id: tenantA,
       condominium_id: condoA,
-      unit_id: unitA2, // Unidade nao vinculada ao residentActiveId
+      unit_id: unitA2,
       resident_id: residentActiveId,
-      visitor_name: "Tentativa Nao Autorizada",
+      visitor_name: "Visitante",
       plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    const allowed = evaluateAccessInvitesInsertPolicy(inviteForOtherUnit, mockDbState);
+    const allowed = evaluateAccessInvitesInsertRule(inviteOtherUnit, mockDbState);
     expect(allowed).toBe(false);
   });
 
-  it("nega morador tentar criar convite em outro condominio", () => {
-    const inviteForOtherCondo: AccessInviteRecord = {
+  it("nega criacao de convite para outro condominio", () => {
+    const inviteOtherCondo: AccessInviteRecord = {
       id: "inv-003",
       tenant_id: tenantA,
-      condominium_id: condoB, // Outro condominio
+      condominium_id: condoB,
       unit_id: unitA1,
       resident_id: residentActiveId,
-      visitor_name: "Invasao Cross-Condo",
+      visitor_name: "Visitante",
       plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    const allowed = evaluateAccessInvitesInsertPolicy(inviteForOtherCondo, mockDbState);
+    const allowed = evaluateAccessInvitesInsertRule(inviteOtherCondo, mockDbState);
     expect(allowed).toBe(false);
   });
 
-  it("nega morador tentar criar convite com tenant_id de outro cliente", () => {
-    const crossTenantInvite: AccessInviteRecord = {
-      id: "inv-003-b",
-      tenant_id: tenantB, // Tenant diferente
-      condominium_id: condoA,
-      unit_id: unitA1,
-      resident_id: residentActiveId,
-      visitor_name: "Invasao Cross-Tenant",
-      plate: null,
-      invite_type: "single",
-      status: "active"
-    };
-
-    const allowed = evaluateAccessInvitesInsertPolicy(crossTenantInvite, mockDbState);
-    expect(allowed).toBe(false);
-  });
-
-  it("nega morador inativo criar convite", () => {
-    const inactiveCtx: RlsContext = {
-      ...mockDbState,
-      authUid: userInactiveProfileId
-    };
-
-    const invite: AccessInviteRecord = {
+  it("nega criacao de convite com tenant_id de outro cliente", () => {
+    const inviteOtherTenant: AccessInviteRecord = {
       id: "inv-004",
-      tenant_id: tenantA,
+      tenant_id: tenantB,
       condominium_id: condoA,
       unit_id: unitA1,
-      resident_id: residentInactiveId,
-      visitor_name: "Visitante de Inativo",
+      resident_id: residentActiveId,
+      visitor_name: "Visitante",
       plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    const allowed = evaluateAccessInvitesInsertPolicy(invite, inactiveCtx);
+    const allowed = evaluateAccessInvitesInsertRule(inviteOtherTenant, mockDbState);
     expect(allowed).toBe(false);
   });
 
-  it("nega usuario autenticado sem vinculo residencial criar convite", () => {
-    const unlinkedCtx: RlsContext = {
-      ...mockDbState,
-      authUid: userWithoutResidentProfileId
-    };
-
-    const invite: AccessInviteRecord = {
+  it("nega criacao de convite por morador inativo", () => {
+    const inviteInactive: AccessInviteRecord = {
       id: "inv-005",
       tenant_id: tenantA,
       condominium_id: condoA,
       unit_id: unitA1,
-      resident_id: "res-inexistente",
-      visitor_name: "Sem Vinculo",
+      resident_id: residentInactiveId,
+      visitor_name: "Visitante",
       plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    const allowed = evaluateAccessInvitesInsertPolicy(invite, unlinkedCtx);
+    const allowed = evaluateAccessInvitesInsertRule(inviteInactive, mockDbState);
     expect(allowed).toBe(false);
   });
 
-  it("nega usuario anonimo criar ou consultar convites", () => {
-    const anonCtx: RlsContext = {
-      ...mockDbState,
-      authUid: null,
-      currentTenantId: null
+  it("nega criacao de convite por usuario autenticado sem vinculo residencial", () => {
+    const unlinkedCtx: ReferenceContext = {
+      authUid: "user-sem-morador",
+      currentTenantId: tenantA,
+      isOperator: false,
+      residents: [],
+      residentUnits: []
     };
 
     const invite: AccessInviteRecord = {
@@ -315,18 +245,43 @@ describe("Politicas RLS de Convites (access_invites)", () => {
       condominium_id: condoA,
       unit_id: unitA1,
       resident_id: residentActiveId,
-      visitor_name: "Anonimo",
+      visitor_name: "Visitante",
       plate: null,
       invite_type: "single",
       status: "active"
     };
 
-    expect(evaluateAccessInvitesInsertPolicy(invite, anonCtx)).toBe(false);
-    expect(evaluateAccessInvitesSelectPolicy(invite, anonCtx)).toBe(false);
+    const allowed = evaluateAccessInvitesInsertRule(invite, unlinkedCtx);
+    expect(allowed).toBe(false);
   });
 
-  it("permite morador atualizar (cancelar) seu proprio convite", () => {
-    const ownInvite: AccessInviteRecord = {
+  it("nega criacao de convite por usuario anonimo (sem auth)", () => {
+    const anonCtx: ReferenceContext = {
+      authUid: null,
+      currentTenantId: null,
+      isOperator: false,
+      residents: mockDbState.residents,
+      residentUnits: mockDbState.residentUnits
+    };
+
+    const invite: AccessInviteRecord = {
+      id: "inv-007",
+      tenant_id: tenantA,
+      condominium_id: condoA,
+      unit_id: unitA1,
+      resident_id: residentActiveId,
+      visitor_name: "Visitante Anon",
+      plate: null,
+      invite_type: "single",
+      status: "active"
+    };
+
+    const allowed = evaluateAccessInvitesInsertRule(invite, anonCtx);
+    expect(allowed).toBe(false);
+  });
+
+  it("permite atualizacao (cancelamento) do proprio convite pelo morador", () => {
+    const invite: AccessInviteRecord = {
       id: "inv-001",
       tenant_id: tenantA,
       condominium_id: condoA,
@@ -338,11 +293,11 @@ describe("Politicas RLS de Convites (access_invites)", () => {
       status: "cancelled"
     };
 
-    const allowed = evaluateAccessInvitesUpdatePolicy(ownInvite, mockDbState);
+    const allowed = evaluateAccessInvitesUpdateRule(invite, mockDbState);
     expect(allowed).toBe(true);
   });
 
-  it("nega morador atualizar convite de outro morador", () => {
+  it("nega atualizacao de convite de outro morador", () => {
     const otherResidentInvite: AccessInviteRecord = {
       id: "inv-999",
       tenant_id: tenantA,
@@ -355,7 +310,7 @@ describe("Politicas RLS de Convites (access_invites)", () => {
       status: "cancelled"
     };
 
-    const allowed = evaluateAccessInvitesUpdatePolicy(otherResidentInvite, mockDbState);
+    const allowed = evaluateAccessInvitesUpdateRule(otherResidentInvite, mockDbState);
     expect(allowed).toBe(false);
   });
 
@@ -373,30 +328,10 @@ describe("Politicas RLS de Convites (access_invites)", () => {
     };
 
     // Morador autenticado tentando DELETE
-    expect(evaluateAccessInvitesDeletePolicy(invite, mockDbState)).toBe(false);
+    expect(evaluateAccessInvitesDeleteRule(invite, mockDbState)).toBe(false);
 
     // Operador autenticado tentando DELETE
-    const operatorCtx: RlsContext = { ...mockDbState, isOperator: true };
-    expect(evaluateAccessInvitesDeletePolicy(invite, operatorCtx)).toBe(true);
-  });
-
-  it("valida cliente Supabase anon contra a API quando credenciais locais estao presentes", async () => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!url || !anonKey) {
-      // Pula sem erro se executando em ambiente de teste estatico sem rede
-      return;
-    }
-
-    const client = createClient<Database>(url, anonKey);
-    const { data, error } = await client.from("access_invites").select("id").limit(1);
-
-    // Anon deve receber array vazio por RLS ou erro de permissao/grants, nunca dados
-    if (error) {
-      expect(error).toBeDefined();
-    } else {
-      expect(data).toEqual([]);
-    }
+    const operatorCtx: ReferenceContext = { ...mockDbState, isOperator: true };
+    expect(evaluateAccessInvitesDeleteRule(invite, operatorCtx)).toBe(true);
   });
 });

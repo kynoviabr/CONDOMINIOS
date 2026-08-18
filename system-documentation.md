@@ -624,25 +624,76 @@ O fluxo atual é orquestrado de forma assíncrona e resiliente via Server Action
 4. **Decisão do Morador**: O morador clica em "Autorizar" ou "Recusar". A Server Action atualiza `status = 'approved'` ou `'rejected'` com timestamp `decided_at` e `decided_by = (select auth.uid())`.
 5. **Liberação**: A portaria consulta o status atualizado e procede com a liberação física e registro em `access_events`.
 
-### 20.6 Testes Automatizados e de Integração RLS
-A suíte de testes de banco e RLS está localizada em [`packages/database/src/invites-rls.test.ts`](file:///Users/fernandoluizbraidotti/Documents/CONDOMINIOS/packages/database/src/invites-rls.test.ts) e cobre:
+### 20.6 Testes Automatizados e de Validação RLS
 
-1. Morador ativo criando convite para sua unidade vinculada (Permitido).
-2. Morador criando convite para unidade de outro morador (Negado).
-3. Morador tentando acessar outro condomínio (Negado).
-4. Morador inativo criando convite (Negado).
-5. Usuário autenticado sem vínculo residencial (Negado).
-6. Usuário anônimo criando ou consultando convites (Negado).
-7. Morador atualizando seu próprio convite (Permitido).
-8. Morador atualizando convite de outro morador (Negado).
-9. Tentativa de DELETE por morador não autorizado (Negado).
+A validação do fluxo de convites é dividida em duas camadas complementares:
 
-Comando de execução:
+#### 1. Testes Reais de Banco de Dados e RLS (PostgreSQL + pgTAP)
+A suíte real de testes que executa migrations e valida a aplicação efetiva de privilégios SQL (grants), subqueries RLS e políticas no PostgreSQL está localizada em:
+- `supabase/tests/database/access_invites_rls.test.sql`
+
+**Cenários Reais Validados:**
+1. Morador ativo cria convite para sua unidade vinculada: **Permitido**.
+2. Convite para unidade de outro morador: **Negado por RLS (WITH CHECK)**.
+3. Convite para outro condomínio: **Negado por RLS (WITH CHECK)**.
+4. Convite para outro tenant: **Negado por RLS (WITH CHECK)**.
+5. Morador inativo cria convite: **Negado por RLS (status inactive)**.
+6. Usuário autenticado sem vínculo cria convite: **Negado por RLS**.
+7. Usuário anônimo (`anon`) consulta convites: **Negado (permissão revogada por menor privilégio)**.
+8. Usuário anônimo (`anon`) cria convite: **Negado por ausência de grant INSERT**.
+9. Morador consulta somente seus próprios convites: **Permitido (vê 1 registro)**.
+10. Morador não consulta convite de outro morador: **Negado (0 registros visíveis)**.
+11. Morador atualiza/cancela seu próprio convite: **Permitido**.
+12. Morador atualiza convite de outro morador: **Negado (0 registros afetados)**.
+13. Morador executa `DELETE`: **Negado por menor privilégio (sem grant DELETE)**.
+14. Operador autorizado executa operações permitidas: **Permitido**.
+
+**Pré-requisitos Locais:**
+- Docker ativo.
+- Supabase CLI instalada.
+- Ambiente local iniciado (`supabase start`).
+- Banco local resetado pelas migrations (`supabase db reset`).
+
+**Comando de Execução:**
+```bash
+pnpm test:rls
+# ou diretamente via CLI:
+supabase test db
+```
+
+#### 2. Testes Unitários Conceituais em TypeScript
+Os testes unitários de modelo em TypeScript para verificação rápida de regras em memória estão localizados em:
+- `packages/database/src/invites-rls.test.ts`
+- `packages/database/src/invites.test.ts`
+
+**Comando de Execução:**
 ```bash
 pnpm test
 ```
 
-### 20.7 Limitações e Funcionalidades Futuras
+### 20.7 Integração Contínua (CI)
+O workflow do GitHub Actions (`.github/workflows/ci.yml`) executa duas validações independentes:
+1. `validate`: Linting (`pnpm lint`), typechecking (`pnpm typecheck`), testes unitários (`pnpm test`) e build completo (`pnpm build`).
+2. `test-rls`: Inicialização isolada do Supabase local via `supabase/setup-cli`, aplicação de todas as migrations e execução dos testes PostgreSQL/pgTAP (`supabase test db`).
+
+### 20.8 Auditoria das Funções SECURITY DEFINER Restantes
+O banco de dados conta com cinco funções auxiliares de RLS com `SECURITY DEFINER`:
+1. `public.can_operate_condominium(target_condominium_id uuid)`
+2. `public.has_condominium_access(target_condominium_id uuid)`
+3. `public.current_tenant_id()`
+4. `public.has_tenant_access(target_tenant_id uuid)`
+5. `public.current_profile_role()`
+
+**Auditoria e Justificativa de Segurança:**
+- **Necessidade de SECURITY DEFINER**: Estas funções realizam consultas internas nas tabelas `public.profiles`, `public.condominiums` e `public.condominium_memberships` para resolver o contexto de tenancy e permissões do usuário (`auth.uid()`). Sem `SECURITY DEFINER`, o PostgreSQL entraria em recursão infinita de políticas RLS ao tentar avaliar as permissões dessas tabelas fundamentais.
+- **Search Path Seguro**: Todas as funções definem explicitamente `SET search_path = public` para evitar ataques de manipulação de namespace.
+- **Privilégios Estritos**: `EXECUTE` foi revogado de `public` e `anon`, sendo concedido exclusivamente a `authenticated`.
+- **Roteiro de Migração Futura**: Em um ciclo de infraestrutura dedicado, essas funções poderão ser migradas para um schema privado e não exposto pela Data API (ex.: `private.can_operate_condominium`), atualizando as políticas dependentes sem risco de exposição como RPC público.
+
+### 20.9 Supabase Advisors & Configurações de Painel
+- **Database Security Linter**: 0 problemas de segurança reportados (`supabase db advisors --local --type security` aprovado com 0 issues).
+- **Leaked Password Protection**: Configuração gerenciada pelo serviço gerenciado do Supabase Auth. Para habilitar em produção, acesse o painel Supabase: *Authentication* -> *Attack Protection* -> *Enable Leaked Password Protection*.
+
 - **Supabase Realtime (WebSockets)**: Atualmente as atualizações dependem de polling ou revalidação de rota por Server Actions; a inscrição em canais Realtime (`supabase.channel`) é planejada para sincronização instantânea na tela do morador e operador sem necessidade de refresh manual.
 - **Notificações Push Web (Web Push API / Service Worker)**: Alertas sonoros e banners no smartphone quando a tela estiver bloqueada.
 - **Hardware IoT**: Integração de webhooks de abertura automática direta com controladoras de cancela físicas.
