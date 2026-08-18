@@ -128,7 +128,8 @@ function errorMessage(error: string | undefined) {
     missing_favorite_fields: "Informe unidade e nome para salvar favorito.",
     missing_invite_fields: "Informe os dados obrigatórios do convite.",
     resident_not_active: "Morador inativo ou não encontrado.",
-    unit_not_allowed: "Unidade não permitida para este morador."
+    unit_not_allowed: "Unidade não permitida para este morador.",
+    unauthorized_invite: "Você não possui permissão para emitir convites para esta unidade."
   };
 
   return error ? messages[error] ?? error : null;

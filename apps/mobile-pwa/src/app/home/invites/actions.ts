@@ -144,6 +144,17 @@ export async function createInviteAction(formData: FormData) {
     .single();
 
   if (error || !invite) {
+    console.error("[mobile-pwa/createInviteAction] Supabase invite insert error:", {
+      code: error?.code,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint
+    });
+
+    if (error?.code === "42501") {
+      redirect("/home/invites?error=unauthorized_invite");
+    }
+
     redirect("/home/invites?error=create_invite_failed");
   }
 
