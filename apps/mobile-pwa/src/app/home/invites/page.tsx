@@ -1,4 +1,5 @@
 import { buildInviteQrPayload } from "@kynovia/database";
+import { ShareInviteButton } from "./ShareInviteButton";
 import Link from "next/link";
 import QRCode from "qrcode";
 import {
@@ -239,10 +240,31 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
       ) : null}
 
       {qrDataUrl ? (
-        <section className="app-panel qr-panel">
-          <h2>QR Code temporario</h2>
-          <img alt="QR Code do convite" height={240} src={qrDataUrl} width={240} />
-          <p className="muted compact">Mostre este codigo na portaria. O token completo aparece apenas nesta confirmacao.</p>
+        <section className="app-panel qr-panel" style={{ textAlign: "center" }}>
+          <h2>QR Code do Convite</h2>
+          <div style={{ display: "flex", justifyContent: "center", margin: "12px 0" }}>
+            <img
+              alt="QR Code do convite"
+              height={240}
+              src={qrDataUrl}
+              style={{ borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+              width={240}
+            />
+          </div>
+          <p className="muted compact">
+            Apresente este código na portaria ou envie diretamente para o visitante.
+          </p>
+          <ShareInviteButton
+            expiresAt={
+              invites.find((i) => i.id === queryParams.created)?.expires_at
+                ? formatDate(invites.find((i) => i.id === queryParams.created)!.expires_at)
+                : "data limite"
+            }
+            inviteId={queryParams.created ?? ""}
+            visitorName={
+              invites.find((i) => i.id === queryParams.created)?.visitor_name ?? "Visitante"
+            }
+          />
         </section>
       ) : null}
 

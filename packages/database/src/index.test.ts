@@ -773,6 +773,72 @@ describe("@kynovia/database", () => {
           },
           Update: undefined as never,
           Relationships: []
+        },
+        suppliers: {
+          Row: {
+            id: "supplier_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            name: "Atlas Schindler",
+            trade_name: "Atlas",
+            document: "00.000.000/0001-00",
+            category: "maintenance",
+            contact_name: "Carlos",
+            phone: "+5511999998888",
+            email: "carlos@atlas.com",
+            status: "active",
+            block_reason: null,
+            blocked_at: null,
+            allowed_weekdays: [1, 2, 3, 4, 5, 6, 7],
+            allowed_time_start: "08:00",
+            allowed_time_end: "18:00",
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            name: "Atlas Schindler",
+            category: "maintenance"
+          },
+          Update: {
+            status: "inactive"
+          },
+          Relationships: []
+        },
+        employees: {
+          Row: {
+            id: "employee_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            full_name: "Antônio Ferreira",
+            document: "123.456.789-00",
+            role_title: "Zelador",
+            department: "maintenance",
+            phone: "+5511977776666",
+            email: "antonio@condominio.com",
+            shift_start: "08:00",
+            shift_end: "17:00",
+            workdays: [2, 3, 4, 5, 6],
+            status: "active",
+            emergency_contact_name: "Maria Ferreira",
+            emergency_contact_phone: "+5511977770000",
+            hire_date: "2024-02-01",
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            full_name: "Antônio Ferreira",
+            role_title: "Zelador"
+          },
+          Update: {
+            status: "vacation"
+          },
+          Relationships: []
         }
       },
       Views: {

@@ -48,19 +48,19 @@ export const operationalModules = [
     title: "Portoes e cancelas"
   },
   {
-    description: "Funcionarios autorizados pelo condomínio.",
+    description: "Funcionários e colaboradores autorizados pelo condomínio.",
     href: "/dashboard/employees",
     key: "employees",
-    phase: "foundation",
-    scope: ["Cadastrar funcionarios", "Controlar status", "Preparar vínculo com acessos"],
-    title: "Funcionarios"
+    phase: "available",
+    scope: ["Cadastrar funcionários", "Controlar escalas e turnos", "Gerenciar status e férias"],
+    title: "Funcionários"
   },
   {
     description: "Prestadores e fornecedores recorrentes.",
     href: "/dashboard/suppliers",
     key: "suppliers",
-    phase: "foundation",
-    scope: ["Organizar prestadores", "Controlar recorrencia", "Preparar regras de entrada"],
+    phase: "available",
+    scope: ["Organizar prestadores", "Controlar recorrência", "Definir horários e dias de acesso"],
     title: "Prestadores"
   },
   {
