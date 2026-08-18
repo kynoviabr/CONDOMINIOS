@@ -34,7 +34,7 @@ function visitorsPath() {
   return "/dashboard/visitors";
 }
 
-function redirectToVisitors(status: string) {
+function redirectToVisitors(status: string): never {
   revalidatePath("/dashboard");
   revalidatePath(visitorsPath());
   redirect(`${visitorsPath()}?status=${status}`);
@@ -47,7 +47,7 @@ async function ensureCondominiumAccess(condominiumId: string) {
   const supabase = await createServerSupabaseClient();
   const { data: condominium } = await supabase
     .from("condominiums")
-    .select("id")
+    .select("id, tenant_id")
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId)
     .maybeSingle();
@@ -56,7 +56,7 @@ async function ensureCondominiumAccess(condominiumId: string) {
     redirect("/dashboard?error=condominium_access_denied");
   }
 
-  return { profile, supabase };
+  return { condominium, profile, supabase };
 }
 
 export async function createVisitorAction(formData: FormData) {
@@ -68,16 +68,20 @@ export async function createVisitorAction(formData: FormData) {
   }
 
   const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase.from("visitors").insert({
-    tenant_id: profile.tenantId,
-    condominium_id: condominiumId,
-    full_name: fullName,
-    document: normalizeNullableText(formValue(formData, "document")),
-    phone: normalizeNullableText(normalizePhone(formValue(formData, "phone"))),
-    notes: normalizeNullableText(formValue(formData, "notes"))
-  });
+  const { data, error } = await supabase
+    .from("visitors")
+    .insert({
+      tenant_id: profile.tenantId,
+      condominium_id: condominiumId,
+      full_name: fullName,
+      document: normalizeNullableText(formValue(formData, "document")),
+      phone: normalizeNullableText(normalizePhone(formValue(formData, "phone"))),
+      notes: normalizeNullableText(formValue(formData, "notes"))
+    })
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     redirectToVisitors("create_visitor_failed");
   }
 
@@ -93,8 +97,8 @@ export async function updateVisitorAction(formData: FormData) {
     redirectToVisitors("missing_visitor_fields");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase
+  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { data: updatedRows, error } = await supabase
     .from("visitors")
     .update({
       full_name: fullName,
@@ -103,9 +107,11 @@ export async function updateVisitorAction(formData: FormData) {
       notes: normalizeNullableText(formValue(formData, "notes"))
     })
     .eq("id", visitorId)
-    .eq("condominium_id", condominiumId);
+    .eq("tenant_id", profile.tenantId)
+    .eq("condominium_id", condominiumId)
+    .select("id");
 
-  if (error) {
+  if (error || !updatedRows || updatedRows.length !== 1) {
     redirectToVisitors("update_visitor_failed");
   }
 
@@ -120,14 +126,16 @@ export async function deleteVisitorAction(formData: FormData) {
     redirectToVisitors("missing_visitor_id");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase
+  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { data: deletedRows, error } = await supabase
     .from("visitors")
     .delete()
     .eq("id", visitorId)
-    .eq("condominium_id", condominiumId);
+    .eq("tenant_id", profile.tenantId)
+    .eq("condominium_id", condominiumId)
+    .select("id");
 
-  if (error) {
+  if (error || !deletedRows || deletedRows.length !== 1) {
     redirectToVisitors("delete_visitor_failed");
   }
 
@@ -144,14 +152,18 @@ export async function createVisitorVehicleAction(formData: FormData) {
   }
 
   const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase.from("visitor_vehicles").insert({
-    tenant_id: profile.tenantId,
-    condominium_id: condominiumId,
-    visitor_id: visitorId,
-    plate
-  });
+  const { data, error } = await supabase
+    .from("visitor_vehicles")
+    .insert({
+      tenant_id: profile.tenantId,
+      condominium_id: condominiumId,
+      visitor_id: visitorId,
+      plate
+    })
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     redirectToVisitors("create_visitor_vehicle_failed");
   }
 
@@ -166,14 +178,16 @@ export async function deleteVisitorVehicleAction(formData: FormData) {
     redirectToVisitors("missing_visitor_vehicle_id");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase
+  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { data: deletedRows, error } = await supabase
     .from("visitor_vehicles")
     .delete()
     .eq("id", visitorVehicleId)
-    .eq("condominium_id", condominiumId);
+    .eq("tenant_id", profile.tenantId)
+    .eq("condominium_id", condominiumId)
+    .select("id");
 
-  if (error) {
+  if (error || !deletedRows || deletedRows.length !== 1) {
     redirectToVisitors("delete_visitor_vehicle_failed");
   }
 
@@ -191,16 +205,20 @@ export async function createVisitorUnitVisitAction(formData: FormData) {
   }
 
   const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase.from("visitor_unit_visits").insert({
-    tenant_id: profile.tenantId,
-    condominium_id: condominiumId,
-    visitor_id: visitorId,
-    unit_id: unitId,
-    occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
-    notes: normalizeNullableText(formValue(formData, "notes"))
-  });
+  const { data, error } = await supabase
+    .from("visitor_unit_visits")
+    .insert({
+      tenant_id: profile.tenantId,
+      condominium_id: condominiumId,
+      visitor_id: visitorId,
+      unit_id: unitId,
+      occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
+      notes: normalizeNullableText(formValue(formData, "notes"))
+    })
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     redirectToVisitors("create_visit_failed");
   }
 
