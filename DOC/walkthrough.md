@@ -101,19 +101,15 @@ Todos os tokens abaixo foram verificados diretamente no arquivo [`design-system.
 | Anel de foco verde nos inputs | Requer interação manual | Todos |
 | Mobile PWA themeColor na barra do navegador | Requer iOS/Android ou DevTools mobile | Mobile PWA |
 
-### ⚠️ Alterações funcionais incluídas neste PR (revisão necessária)
+### ✅ Escopo 100% Visual e Documental
 
-Este PR carrega alterações funcionais de ciclo anterior que **não são puramente visuais**:
+As alterações funcionais inseguras (fallback de vínculos em `invites/actions.ts`, `invites/page.tsx`, `home/page.tsx` e TTL em `dashboard/actions.ts`) foram **integralmente revertidas para o estado da `origin/main`**.
 
-| Arquivo | Natureza da mudança |
-|:---|:---|
-| `apps/mobile-pwa/src/app/home/invites/actions.ts` | Lógica de fallback de vínculo residente via `condominium_memberships` |
-| `apps/mobile-pwa/src/app/home/invites/page.tsx` | UI da tela de convites |
-| `apps/mobile-pwa/src/app/home/page.tsx` | UI da tela inicial do morador |
-| `apps/web-portaria/src/app/dashboard/page.tsx` | Refatoração: `.operator-shell` → `.admin-shell`, grid de métricas |
-| `apps/web-portaria/src/app/dashboard/actions.ts` | Ajuste de queries |
-
-> O revisor deve decidir se essas alterações pertencem a este PR ou devem ser separadas antes do merge.
+O PR #215 contém **exclusivamente**:
+1. **Design System & Tokens**: Paleta verde floresta em `design-system.css`.
+2. **Estilos CSS dos Portais**: `web-portaria`, `condo-admin`, `kynovia-admin`, `mobile-pwa` (botões, cards, foco, sidebars).
+3. **Layout e ThemeColor**: `mobile-pwa/layout.tsx` (`themeColor: #257f52`) e classes semânticas do design system no dashboard da portaria.
+4. **Documentação e Mockups**: `DOC/walkthrough.md`, `DOC/system-documentation.md` e os 4 mockups em `DOC/images/`.
 
 ---
 
@@ -124,7 +120,7 @@ Este PR carrega alterações funcionais de ciclo anterior que **não são purame
 | `pnpm lint` | ✅ 0 erros |
 | `pnpm typecheck` | ✅ 10/10 pacotes aprovados |
 | `pnpm test` | ✅ 96/96 testes aprovados |
-| `pnpm build` | ✅ 10/10 builds de produção |
+| `pnpm build` | ✅ 10/10 builds de produção aprovados |
 
 ---
 
@@ -134,47 +130,30 @@ Este PR carrega alterações funcionais de ciclo anterior que **não são purame
 
 **Branch:** `antigravity/supabase-dev-reconciliation` → `main`
 
-| Commit | Descrição |
-|:---|:---|
-| `9558a31` | style: apply green forest design system across all portals |
-| `619a084` | docs: add green forest design system walkthrough and portal mockups to DOC/ |
-| `8eca84b` | docs: correct walkthrough — accurate hex count, both commits, functional changes disclosed |
-| `cae37e1` | docs: version DOC/system-documentation.md and correct walkthrough inconsistencies |
-
 ---
 
-## Pendências antes do merge
+## Escopo Real Deste PR
 
-- [ ] Revisor deve avaliar as alterações funcionais do Mobile PWA e Web Portaria dashboard e decidir se pertencem a este PR ou devem ser separadas
-- [ ] Verificação visual humana nas aplicações rodando localmente
-- [ ] Tokenização completa dos hexadecimais remanescentes nos três portais (escopo de PR futuro)
-
----
-
-## Escopo real deste PR
-
-### Alterado — Visual (design system)
+### Alterado — Visual (Design System)
 - Tokens de cor em `design-system.css`
 - `apps/web-portaria/src/app/globals.css` — completamente tokenizado (0 hex fixos)
-- `apps/condo-admin/src/app/globals.css` — tokenização parcial dos novos estilos
-- `apps/kynovia-admin/src/app/globals.css` — substituição de `#0f766e` por tokens
-- `apps/mobile-pwa/src/app/globals.css` — substituição de `#0f766e` por tokens
+- `apps/condo-admin/src/app/globals.css` — tokenização dos novos estilos e redução de hexadecimais legados (53 → 37)
+- `apps/kynovia-admin/src/app/globals.css` — redução de hexadecimais legados (110 → 103)
+- `apps/mobile-pwa/src/app/globals.css` — redução de hexadecimais legados (40 → 36)
 - `apps/mobile-pwa/src/app/layout.tsx` — `themeColor` atualizado para verde
-
-### Alterado — Funcional (carregado de ciclo anterior, requer decisão do revisor)
-- `apps/mobile-pwa/src/app/home/invites/actions.ts` — nova lógica de fallback de vínculo residente via `condominium_memberships`
-- `apps/mobile-pwa/src/app/home/invites/page.tsx` — alterações na UI de convites
-- `apps/mobile-pwa/src/app/home/page.tsx` — alterações na UI da tela inicial
-- `apps/web-portaria/src/app/dashboard/page.tsx` — refatoração de layout e grid de métricas
-- `apps/web-portaria/src/app/dashboard/actions.ts` — ajuste de queries
+- `apps/web-portaria/src/app/dashboard/page.tsx` — alinhamento estrutural de classes do design system (.admin-shell, .admin-header, .admin-section) sem alteração de queries
 
 ### Alterado — Documentação
+- `DOC/walkthrough.md`, `DOC/images/` (4 mockups), `DOC/system-documentation.md`
 - `docs/database/README.md`, `docs/database/supabase-projects.md`
 - `docs/implementation/operational-pilot/readiness-audit.md`
 - `system-documentation.md`, `tokens.md`
-- `DOC/walkthrough.md`, `DOC/images/` (4 mockups), `DOC/system-documentation.md`
 
-### Não alterado
+### Não Alterado (100% Preservado da `main`)
+- `apps/mobile-pwa/src/app/home/invites/actions.ts` (idêntico à `origin/main`)
+- `apps/mobile-pwa/src/app/home/invites/page.tsx` (idêntico à `origin/main`)
+- `apps/mobile-pwa/src/app/home/page.tsx` (idêntico à `origin/main`)
+- `apps/web-portaria/src/app/dashboard/actions.ts` (idêntico à `origin/main`)
 - Nenhuma migration do Supabase (local ou remota)
 - Nenhuma tabela RLS ou política de segurança de banco de dados
 - Nenhum dado de condomínio, unidade, morador ou veículo
