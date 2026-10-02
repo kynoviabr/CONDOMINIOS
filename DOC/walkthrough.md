@@ -71,12 +71,24 @@ Todos os tokens abaixo foram verificados diretamente no arquivo [`design-system.
 | Token `--background: 150 20% 96%` | Confirmado em `design-system.css` linha 7 |
 | Token `--warning: 35 92% 38%` | Confirmado em `design-system.css` linha 57 |
 | Botão com `linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)))` | Confirmado em `web-portaria/globals.css` e `condo-admin/globals.css` |
-| Sidebar com `hsl(var(--sidebar-background/accent/border))` — zero hex fixo | Confirmado em `web-portaria/globals.css` |
+| Sidebar com `hsl(var(--sidebar-background/accent/border))` | Confirmado em `web-portaria/globals.css` |
 | `themeColor: "#257f52"` no Mobile PWA | Confirmado em `mobile-pwa/src/app/layout.tsx` |
 | Zero erros de lint | `pnpm lint` → 0 erros |
 | Zero erros de tipo | `pnpm typecheck` → 10/10 pacotes |
 | 96 testes aprovados | `pnpm test` → 96/96 |
 | Build de produção | `pnpm build` → 10/10 tasks |
+
+### Estado real das cores hexadecimais fixas por arquivo
+
+| Arquivo | Hex fixos | Origem |
+|:---|:---:|:---|
+| `design-system.css` | 1 | `#ffffff` em `--brand-primary-contrast` — branco literal, aceitável |
+| `apps/web-portaria/src/app/globals.css` | **0** | Completamente tokenizado neste PR |
+| `apps/condo-admin/src/app/globals.css` | 37 | Pré-existentes — não introduzidos por este PR |
+| `apps/kynovia-admin/src/app/globals.css` | 103 | Pré-existentes — não introduzidos por este PR |
+| `apps/mobile-pwa/src/app/globals.css` | 36 | Pré-existentes — não introduzidos por este PR |
+
+> A tokenização completa de `kynovia-admin`, `condo-admin` e `mobile-pwa` é escopo de PR futuro dedicado.
 
 ### ⚠️ Requer verificação humana nas aplicações reais
 
@@ -85,9 +97,23 @@ Todos os tokens abaixo foram verificados diretamente no arquivo [`design-system.
 | Sidebar verde visível em tela real | Depende de DevTools/browser | Portaria, Condo Admin, Kynovia Admin |
 | Botão "Entrar" com glow verde | Depende de renderização | Login — todos os portais |
 | Fundo off-white esverdeado | Sutil — pode variar entre monitores | Todos |
-| Badge "Pendente" âmbar em tabela real | Depende de dados de seed | Portaria, Condo Admin |
+| Badge "Pendente" âmbar em tabela real | Requer dados de seed reais | Portaria, Condo Admin |
 | Anel de foco verde nos inputs | Requer interação manual | Todos |
 | Mobile PWA themeColor na barra do navegador | Requer iOS/Android ou DevTools mobile | Mobile PWA |
+
+### ⚠️ Alterações funcionais incluídas neste PR (revisão necessária)
+
+Este PR carrega alterações funcionais de ciclo anterior que **não são puramente visuais**:
+
+| Arquivo | Natureza da mudança |
+|:---|:---|
+| `apps/mobile-pwa/src/app/home/invites/actions.ts` | Lógica de fallback de vínculo residente via `condominium_memberships` |
+| `apps/mobile-pwa/src/app/home/invites/page.tsx` | UI da tela de convites |
+| `apps/mobile-pwa/src/app/home/page.tsx` | UI da tela inicial do morador |
+| `apps/web-portaria/src/app/dashboard/page.tsx` | Refatoração: `.operator-shell` → `.admin-shell`, grid de métricas |
+| `apps/web-portaria/src/app/dashboard/actions.ts` | Ajuste de queries |
+
+> O revisor deve decidir se essas alterações pertencem a este PR ou devem ser separadas antes do merge.
 
 ---
 
@@ -106,8 +132,20 @@ Todos os tokens abaixo foram verificados diretamente no arquivo [`design-system.
 
 🔗 [PR #215 — style: apply green forest design system across all portals](https://github.com/kynoviabr/CONDOMINIOS/pull/215)
 
-**Branch:** `antigravity/supabase-dev-reconciliation` → `main`  
-**Commit:** `9558a31`
+**Branch:** `antigravity/supabase-dev-reconciliation` → `main`
+
+| Commit | Descrição |
+|:---|:---|
+| `9558a31` | style: apply green forest design system across all portals |
+| `619a084` | docs: add green forest design system walkthrough and portal mockups to DOC/ |
+
+---
+
+## Pendências antes do merge
+
+- [ ] Revisor deve avaliar as alterações funcionais do Mobile PWA e Web Portaria dashboard
+- [ ] Verificação visual humana nas aplicações rodando localmente
+- [ ] Tokenização completa dos hexadecimais remanescentes (escopo de PR futuro)
 
 ---
 
@@ -115,5 +153,4 @@ Todos os tokens abaixo foram verificados diretamente no arquivo [`design-system.
 
 - Nenhuma migration do Supabase (local ou remota)
 - Nenhuma regra de negócio, política de acesso ou RLS
-- Nenhum processo ou fluxo operacional de portaria, morador ou administrador
 - Nenhum dado de condomínio, unidade, morador ou veículo
