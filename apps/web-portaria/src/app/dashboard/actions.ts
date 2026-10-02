@@ -120,7 +120,7 @@ export async function requestResidentApprovalAction(formData: FormData) {
     dashboardRedirect("invalid");
   }
 
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min validity
+  const expiresAt = new Date(Date.now() + 120 * 60 * 1000).toISOString(); // 2 hours validity
 
   await context.supabase.from("resident_access_approvals").insert({
     tenant_id: context.condominium.tenant_id,

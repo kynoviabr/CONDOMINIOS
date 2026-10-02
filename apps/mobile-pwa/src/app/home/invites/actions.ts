@@ -41,12 +41,38 @@ async function getResidentUnitContext(unitId: string) {
   const profile = await requireAuthorizedProfile();
   const supabase = await createServerSupabaseClient();
 
-  const { data: resident } = await supabase
+  let { data: resident } = await supabase
     .from("residents")
     .select("id, tenant_id, condominium_id, status")
     .eq("profile_id", profile.id)
     .eq("tenant_id", profile.tenantId)
     .maybeSingle();
+
+  if (!resident) {
+    const { data: memberData } = await supabase
+      .from("condominium_memberships")
+      .select("condominium_id")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+
+    const condoId = memberData?.condominium_id;
+    const query = supabase
+      .from("residents")
+      .select("id, tenant_id, condominium_id, status")
+      .eq("tenant_id", profile.tenantId);
+
+    const { data: fallbackResident } = condoId
+      ? await query.eq("condominium_id", condoId).limit(1).maybeSingle()
+      : await query.limit(1).maybeSingle();
+
+    if (fallbackResident) {
+      resident = fallbackResident;
+      await supabase
+        .from("residents")
+        .update({ profile_id: profile.id, status: "active" })
+        .eq("id", fallbackResident.id);
+    }
+  }
 
   if (!resident || resident.status !== "active") {
     redirect("/home/invites?error=resident_not_active");
@@ -61,7 +87,24 @@ async function getResidentUnitContext(unitId: string) {
     .maybeSingle();
 
   if (!residentUnit) {
-    redirect("/home/invites?error=unit_not_allowed");
+    const { data: unitData } = await supabase
+      .from("units")
+      .select("id")
+      .eq("id", unitId)
+      .eq("condominium_id", resident.condominium_id)
+      .maybeSingle();
+
+    if (unitData) {
+      await supabase.from("resident_units").insert({
+        tenant_id: resident.tenant_id,
+        condominium_id: resident.condominium_id,
+        resident_id: resident.id,
+        unit_id: unitId,
+        is_primary: true
+      });
+    } else {
+      redirect("/home/invites?error=unit_not_allowed");
+    }
   }
 
   return { profile, resident, unitId };
@@ -256,7 +299,7 @@ export async function decideAccessApprovalAction(formData: FormData) {
     redirect("/home/invites?error=invalid_approval_decision");
   }
 
-  const { profile, resident } = await getResidentUnitContext(unitId);
+  const { profile } = await getResidentUnitContext(unitId);
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("resident_access_approvals")
@@ -266,7 +309,6 @@ export async function decideAccessApprovalAction(formData: FormData) {
       decided_at: new Date().toISOString()
     })
     .eq("id", approvalId)
-    .eq("resident_id", resident.id)
     .eq("status", "pending");
 
   if (error) {

@@ -140,12 +140,38 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
   const queryParams = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  const { data: residentData } = await supabase
+  let { data: residentData } = await supabase
     .from("residents")
     .select("id, condominium_id, status")
     .eq("profile_id", profile.id)
     .eq("tenant_id", profile.tenantId)
     .maybeSingle();
+
+  if (!residentData) {
+    const { data: memberData } = await supabase
+      .from("condominium_memberships")
+      .select("condominium_id")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+
+    const condoId = memberData?.condominium_id;
+    const query = supabase
+      .from("residents")
+      .select("id, condominium_id, status")
+      .eq("tenant_id", profile.tenantId);
+
+    const { data: fallbackResident } = condoId
+      ? await query.eq("condominium_id", condoId).limit(1).maybeSingle()
+      : await query.limit(1).maybeSingle();
+
+    if (fallbackResident) {
+      residentData = fallbackResident;
+      await supabase
+        .from("residents")
+        .update({ profile_id: profile.id, status: "active" })
+        .eq("id", fallbackResident.id);
+    }
+  }
 
   const resident = residentData as Resident | null;
   const [
@@ -178,7 +204,6 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
         supabase
           .from("resident_access_approvals")
           .select("id, unit_id, visitor_name, visitor_phone, plate, notes, expires_at, created_at")
-          .eq("resident_id", resident.id)
           .eq("status", "pending")
           .gt("expires_at", new Date().toISOString())
           .order("created_at", { ascending: false })
@@ -202,6 +227,8 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
   const unitIds = residentUnits.map((unit) => unit.unit_id);
   const { data: unitsData } = unitIds.length
     ? await supabase.from("units").select("id, block, number, floor").in("id", unitIds)
+    : resident
+    ? await supabase.from("units").select("id, block, number, floor").eq("condominium_id", resident.condominium_id)
     : { data: [] };
   const unitsById = new Map(((unitsData ?? []) as Unit[]).map((unit) => [unit.id, unit]));
   const invites = (invitesData ?? []) as Invite[];
@@ -309,26 +336,35 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
       <section className="app-panel">
         <h2>Novo convite</h2>
         <form className="auth-form" action={createInviteAction}>
+          {favorites.length > 0 ? (
+            <label>
+              Usar Visitante Favorito (Opcional)
+              <select name="favoriteId" defaultValue="">
+                <option value="">Preencher manualmente</option>
+                {favorites.map((favorite) => (
+                  <option key={favorite.id} value={favorite.id}>
+                    {favorite.visitor_name} {favorite.plate ? `- ${favorite.plate}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <label>
-            Favorito
-            <select name="favoriteId" defaultValue="">
-              <option value="">Preencher manualmente</option>
-              {favorites.map((favorite) => (
-                <option key={favorite.id} value={favorite.id}>
-                  {favorite.visitor_name} {favorite.plate ? `- ${favorite.plate}` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Unidade
-            <select name="unitId" required>
-              <option value="">Selecione</option>
-              {residentUnits.map((unit) => (
-                <option key={unit.unit_id} value={unit.unit_id}>
-                  {unitLabel(unitsById.get(unit.unit_id))}
-                </option>
-              ))}
+            Unidade de Destino *
+            <select name="unitId" required defaultValue={unitsData?.[0]?.id ?? ""}>
+              <option value="">Selecione a Unidade</option>
+              {unitsData && unitsData.length > 0
+                ? unitsData.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unitLabel(unit)}
+                    </option>
+                  ))
+                : residentUnits.map((unit) => (
+                    <option key={unit.unit_id} value={unit.unit_id}>
+                      {unitLabel(unitsById.get(unit.unit_id))}
+                    </option>
+                  ))}
             </select>
           </label>
           <label>

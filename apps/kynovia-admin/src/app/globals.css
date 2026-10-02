@@ -53,7 +53,7 @@ textarea {
 }
 
 .eyebrow {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -95,7 +95,7 @@ label {
 }
 
 label span[aria-hidden="true"] {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-weight: 400;
 }
 
@@ -171,7 +171,7 @@ button.danger {
 }
 
 .text-link {
-  color: #0f766e;
+  color: hsl(var(--primary));
   display: inline-flex;
   font-weight: 500;
   justify-self: center;
@@ -252,7 +252,7 @@ button.danger {
 .saas-sidebar {
   background:
     linear-gradient(180deg, hsl(var(--bg-navy)), hsl(218 42% 13%));
-  border-right: 1px solid hsl(210 24% 22%);
+  border-right: 1px solid hsl(var(--sidebar-border));
   color: hsl(var(--sidebar-foreground));
   display: flex;
   flex-direction: column;
@@ -620,7 +620,7 @@ button.danger {
 
 .customer-list-row:hover .row-arrow,
 .customer-list-row:focus-visible .row-arrow {
-  border-color: #0f766e;
+  border-color: hsl(var(--primary));
 }
 
 .modal-backdrop {
@@ -800,7 +800,7 @@ button.danger {
 }
 
 .finance-bar-row strong {
-  background: #0f766e;
+  background: hsl(var(--primary));
   display: block;
   height: 100%;
 }
@@ -1022,7 +1022,7 @@ th {
 }
 
 .table-action-link {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-weight: 500;
   text-decoration: none;
 }
@@ -1452,7 +1452,7 @@ th {
 }
 
 .user-card-title p {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-size: 0.74rem;
   letter-spacing: 0;
   margin: 0 0 3px;

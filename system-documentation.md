@@ -15,7 +15,8 @@ O portal mais desenvolvido neste ponto é o **Condo Admin**, acessível localmen
 | Item | Valor atual |
 | --- | --- |
 | Repositório local | `/Users/fernandoluizbraidotti/Documents/CONDOMINIOS` |
-| Branch de trabalho | `antigravity/unidades-checkpoint` |
+| Branch verificada neste checkpoint | `antigravity/supabase-dev-reconciliation` |
+| Commit base verificado | `fb7a01b` — merge do PR #214 |
 | Aplicação principal atual | `apps/condo-admin` |
 | URL local do Condo Admin | `http://localhost:3004` |
 | Projeto Supabase remoto | `Condominios` |
@@ -65,9 +66,9 @@ flowchart LR
 | Caminho | Porta | Responsabilidade | Situação |
 | --- | ---: | --- | --- |
 | `apps/web-admin` | 3000 | Aplicação administrativa legada | Mantida durante a migração |
-| `apps/web-portaria` | 3001 | Operação da portaria | Base existente |
-| `apps/mobile-pwa` | 3002 | Experiência móvel do morador | Base existente |
-| `apps/kynovia-admin` | 3003 | Backoffice interno da Kynovia | Estrutura em evolução |
+| `apps/web-portaria` | 3001 | Operação da portaria, QR Code, convites e acessos | Fluxos operacionais implementados; requer evolução de tempo real e piloto |
+| `apps/mobile-pwa` | 3002 | Experiência móvel do morador | Login, convites, QR Code, aprovações e histórico implementados |
+| `apps/kynovia-admin` | 3003 | Backoffice interno da Kynovia | Onboarding, clientes, usuários e financeiro em evolução |
 | `apps/condo-admin` | 3004 | Administração do condomínio | Aplicação principal atual |
 | `packages/ui` | — | Componentes e variantes visuais compartilhados | Compartilhado |
 | `packages/database` | — | Clientes, tipos e auxiliares de banco | Compartilhado |
@@ -222,7 +223,7 @@ As migrações em `supabase/migrations` são a fonte de verdade da estrutura. Nu
 
 ### Histórico de migrações
 
-Existem 21 migrações SQL nesta cópia do repositório, cobrindo:
+Existem **26 migrações SQL locais** nesta cópia do repositório, cobrindo:
 
 1. esquema inicial e fundação;
 2. endurecimento das funções auxiliares de RLS;
@@ -236,10 +237,14 @@ Existem 21 migrações SQL nesta cópia do repositório, cobrindo:
 10. IA operacional;
 11. campos de veículos do Condo Admin;
 12. integridade de veículos de moradores;
+13. gestão de prestadores e funcionários;
+14. endurecimento das políticas de convites do Mobile PWA;
+15. grants mínimos para as tabelas centrais de tenancy usados pelos testes RLS.
 
-As três migrações de permissões de Data API e auxiliares de RLS descritas em um
-checkpoint anterior não estão presentes nesta cópia e devem ser reconciliadas
-antes de qualquer aplicação no ambiente remoto.
+Na verificação de 18 de agosto de 2026, as 25 primeiras migrações estavam
+sincronizadas com o projeto remoto. A migration
+`20260818201825_grant_select_on_core_tenant_tables.sql` constava somente no
+repositório local e ainda precisava de revisão e aplicação controlada no remoto.
 
 O detalhamento lógico do esquema está em `docs/database/schema.md`.
 
@@ -468,25 +473,32 @@ Também devem ser realizados testes manuais dos fluxos alterados. Para o Condo A
 9. confirmar isolamento entre condomínios;
 10. verificar layout em desktop e tablet.
 
-Checkpoint validado em 18 de agosto de 2026:
+Checkpoint mais recente validado em 18 de agosto de 2026, após o PR #214:
 
 - `pnpm lint`: aprovado, sem erros ou avisos;
 - `pnpm typecheck`: 10 de 10 pacotes aprovados;
-- `pnpm test`: 10 arquivos e 66 testes aprovados;
+- `pnpm test`: 14 arquivos e 97 testes aprovados;
 - `pnpm turbo run build --force`: 10 de 10 builds aprovados, sem uso de cache;
+- testes PostgreSQL/RLS em pgTAP aprovados no job independente
+  **PostgreSQL RLS Integration Tests (pgTAP)** do GitHub Actions;
 - módulo de Unidades homologado manualmente para criação, consulta, edição,
-  filtros e integridade de exclusão.
+  filtros e integridade de exclusão;
+- Mobile PWA validado manualmente para login, criação e cancelamento de convite,
+  QR Code, compartilhamento por WhatsApp e histórico.
 
 As validações devem ser repetidas caso qualquer arquivo seja alterado antes do PR.
 
 ## 15. Estado do versionamento neste checkpoint
 
-- Branch atual: `antigravity/unidades-checkpoint`.
-- Há alterações locais ainda não consolidadas em commit/PR.
-- Áreas alteradas incluem dashboard, layout, unidades, moradores, veículos, convites, estilos globais, componentes e validadores.
-- Esta cópia contém 21 migrações. As três migrações adicionais mencionadas em um
-  checkpoint anterior ainda precisam ser reconciliadas.
-- Não substituir nem descartar essas alterações sem revisar `git status` e `git diff`.
+- Branch verificada: `antigravity/supabase-dev-reconciliation`.
+- Commit base: `fb7a01b`, também presente em `main` e `origin/main`.
+- PR #213: endurecimento de RLS e grants de convites, mesclado.
+- PR #214: testes reais PostgreSQL/RLS com pgTAP e CI dedicado, mesclado.
+- O diretório `DOC/` foi criado localmente para guardar uma cópia desta documentação.
+- Esta cópia contém 26 migrations locais; 25 estavam aplicadas no remoto durante
+  a última consulta.
+- Não substituir, descartar ou publicar alterações sem revisar `git status` e
+  `git diff`.
 
 Comandos seguros para inspecionar:
 
@@ -503,8 +515,16 @@ O fluxo obrigatório é trabalhar em branch, validar, criar commits focados, pub
 ### Prioridade alta
 
 - Repetir o ciclo completo de lint, typecheck, testes e build após qualquer nova alteração.
-- Reconciliar as três migrações ausentes e confirmar quais migrações estão aplicadas no Supabase remoto correto.
-- Testar RLS com pelo menos dois condomínios distintos.
+- Revisar e aplicar de forma controlada a migration local
+  `20260818201825_grant_select_on_core_tenant_tables.sql`, que ainda não constava
+  no remoto no momento desta documentação.
+- Manter os testes pgTAP obrigatórios no CI e ampliar a cobertura quando novas
+  tabelas ou políticas RLS forem criadas.
+- Migrar, em ciclo próprio, as cinco funções auxiliares `SECURITY DEFINER` do
+  schema público para um schema privado não exposto pela Data API, preservando
+  as políticas dependentes e evitando recursão RLS.
+- Habilitar a proteção contra senhas vazadas no Supabase Auth quando disponível
+  para o plano e ambiente usados.
 - Criar uma política formal de backup e restauração para banco, Auth e Storage.
 - Validar a restauração dos arquivos legados de Storage, caso ainda seja necessária.
 - Normalizar a taxonomia de papéis entre banco, pacote de Auth, documentação e aplicações.
@@ -691,7 +711,17 @@ O banco de dados conta com cinco funções auxiliares de RLS com `SECURITY DEFIN
 - **Roteiro de Migração Futura**: Em um ciclo de infraestrutura dedicado, essas funções poderão ser migradas para um schema privado e não exposto pela Data API (ex.: `private.can_operate_condominium`), atualizando as políticas dependentes sem risco de exposição como RPC público.
 
 ### 20.9 Supabase Advisors & Configurações de Painel
-- **Database Security Linter**: 0 problemas de segurança reportados (`supabase db advisors --local --type security` aprovado com 0 issues).
+- **Ambiente local**: o Security Advisor foi registrado como aprovado com zero
+  problemas após o reset e as migrations locais.
+- **Ambiente remoto**: a última auditoria ainda apontou cinco funções auxiliares
+  `SECURITY DEFINER` públicas executáveis por `authenticated`:
+  `can_operate_condominium`, `current_profile_role`, `current_tenant_id`,
+  `has_condominium_access` e `has_tenant_access`. Elas possuem justificativa
+  funcional para evitar recursão RLS, mas continuam expostas como RPC no schema
+  público e devem ser migradas para schema privado em um ciclo dedicado.
+- **Performance**: o Advisor remoto ainda registra avisos preexistentes de
+  políticas permissivas duplicadas em algumas tabelas e uma chamada de
+  `auth.uid()` sem subconsulta em `audit_log_export_requests`.
 - **Leaked Password Protection**: Configuração gerenciada pelo serviço gerenciado do Supabase Auth. Para habilitar em produção, acesse o painel Supabase: *Authentication* -> *Attack Protection* -> *Enable Leaked Password Protection*.
 
 - **Supabase Realtime (WebSockets)**: Atualmente as atualizações dependem de polling ou revalidação de rota por Server Actions; a inscrição em canais Realtime (`supabase.channel`) é planejada para sincronização instantânea na tela do morador e operador sem necessidade de refresh manual.

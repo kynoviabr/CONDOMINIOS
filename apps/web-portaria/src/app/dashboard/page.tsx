@@ -289,8 +289,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
   const banner = statusLabel(queryParams.status);
 
   return (
-    <main className="operator-shell wide">
-      <header className="operator-header">
+    <main className="admin-shell">
+      <header className="admin-header">
         <div>
           <p className="eyebrow">Central de Operação</p>
           <h1>Painel da Portaria</h1>
@@ -298,25 +298,75 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
             Acionamento de portões, validação de QR Code, solicitações ao morador e controle de prestadores.
           </p>
         </div>
-        <div className="header-actions" style={{ display: "flex", gap: "10px" }}>
-          <Link className="button-link" href="/dashboard/invites" style={{ background: "#0284c7", borderColor: "#0284c7" }}>
+        <div className="shell-actions">
+          <Link className="button-link" href="/dashboard/invites" style={{ background: "#0284c7" }}>
             📷 Validar QR Code
           </Link>
           <AutoRefresh />
         </div>
       </header>
 
-      {banner ? <section className="result-banner success">{banner}</section> : null}
+      {banner ? (
+        <section className="feedback success" role="alert">
+          {banner}
+        </section>
+      ) : null}
+
+      {/* Grid de Métricas Principais */}
+      <section className="condo-overview">
+        <div className="metric-card">
+          <span>Entradas Hoje</span>
+          <strong>{entriesToday}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Saídas Hoje</span>
+          <strong>{exitsToday}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Acessos Negados</span>
+          <strong style={{ color: deniedToday > 0 ? "#b91c1c" : "inherit" }}>
+            {deniedToday}
+          </strong>
+        </div>
+        <div className="metric-card">
+          <span>Pendentes de Validação</span>
+          <strong style={{ color: pendingEvents.length > 0 ? "#d97706" : "inherit" }}>
+            {pendingEvents.length}
+          </strong>
+        </div>
+        <div className="metric-card">
+          <span>Veículos no Pátio</span>
+          <strong>{activeStays.length}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Ocorrências Abertas</span>
+          <strong style={{ color: occurrences.length > 0 ? "#d97706" : "inherit" }}>
+            {occurrences.length}
+          </strong>
+        </div>
+      </section>
 
       {/* Barra de Acionamento Rápido de Portões e Cancelas */}
-      <section className="app-panel operator-panel" style={{ background: "#0f172a", color: "#f8fafc" }}>
-        <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", justifyContent: "space-between", marginBottom: "12px" }}>
-          <h2 style={{ color: "#f8fafc", margin: 0 }}>⚡ Acionamento Rápido de Portões & Cancelas</h2>
-          <span className="status-badge" style={{ background: "#1e293b", color: "#38bdf8" }}>
+      <section className="admin-section">
+        <div className="section-heading">
+          <div>
+            <h2>⚡ Acionamento Rápido de Portões & Cancelas</h2>
+            <p className="section-description">
+              Comandos diretos de liberação para os pontos de acesso conectados da portaria.
+            </p>
+          </div>
+          <span className="status-badge active">
             {accessPoints.length} Ponto(s) Conectado(s)
           </span>
         </div>
-        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "16px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))"
+          }}
+        >
           {accessPoints.map((point) => (
             <form action={triggerGateCommandAction} key={point.id} style={{ margin: 0 }}>
               <input name="accessPointId" type="hidden" value={point.id} />
@@ -324,11 +374,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               <button
                 style={{
                   background: "#2563eb",
-                  borderColor: "#3b82f6",
                   color: "#ffffff",
                   fontSize: "0.95rem",
                   fontWeight: 600,
-                  minHeight: "48px",
+                  minHeight: "44px",
                   width: "100%"
                 }}
                 type="submit"
@@ -338,48 +387,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
             </form>
           ))}
           {accessPoints.length === 0 ? (
-            <p className="muted compact" style={{ color: "#94a3b8" }}>Nenhum ponto de acesso cadastrado.</p>
+            <p className="muted" style={{ margin: 0 }}>Nenhum ponto de acesso cadastrado.</p>
           ) : null}
         </div>
       </section>
 
-      {/* Grid de Métricas */}
-      <section className="metric-grid" style={{ marginTop: "16px" }}>
-        <article className="metric-card">
-          <span>Entradas hoje</span>
-          <strong>{entriesToday}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Saídas hoje</span>
-          <strong>{exitsToday}</strong>
-        </article>
-        <article className="metric-card danger">
-          <span>Acessos negados</span>
-          <strong>{deniedToday}</strong>
-        </article>
-        <article className="metric-card warning">
-          <span>Pendentes</span>
-          <strong>{pendingEvents.length}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Veículos no pátio</span>
-          <strong>{activeStays.length}</strong>
-        </article>
-        <article className="metric-card warning">
-          <span>Ocorrências abertas</span>
-          <strong>{occurrences.length}</strong>
-        </article>
-      </section>
-
       {/* Barra de Busca */}
-      <section className="app-panel operator-panel search-panel" style={{ marginTop: "16px" }}>
-        <form className="toolbar-form">
-          <label>
-            Busca operacional
+      <section className="toolbar">
+        <form className="filter-form">
+          <label style={{ flex: "1 1 320px" }}>
+            Busca Operacional
             <input
               defaultValue={queryParams.q}
               name="q"
-              placeholder="Nome, placa, unidade, telefone ou ponto de acesso"
+              placeholder="Nome, placa, unidade, telefone ou ponto de acesso..."
             />
           </label>
           <button type="submit">Buscar</button>
@@ -391,14 +412,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         </form>
       </section>
 
-      <section className="operator-layout" style={{ marginTop: "16px" }}>
+      <section className="operator-layout">
         <div className="primary-column">
           {/* Fila de Aprovações em Tempo Real do Morador */}
-          <section className="app-panel operator-panel">
-            <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-              <h2>Aprovações Despachadas aos Moradores</h2>
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Aprovações Despachadas aos Moradores</h2>
+                <p className="section-description">
+                  Solicitações de entrada enviadas diretamente ao app do morador.
+                </p>
+              </div>
               <span className="status-badge active">{approvals.length} Recente(s)</span>
             </div>
+
             <div className="list-stack">
               {approvals.map((approval) => {
                 const unit = approval.unit_id ? unitsById.get(approval.unit_id) : null;
@@ -409,10 +436,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   <article className="list-row" key={approval.id}>
                     <div>
                       <strong>{approval.visitor_name}</strong>
-                      <span style={{ display: "block", fontSize: "0.85rem", marginTop: "2px" }}>
-                        Destino: <strong>{unitLabel}</strong> · Placa: {approval.plate ?? "sem placa"} · Tel: {approval.visitor_phone ?? "sem fone"}
+                      <span>
+                        Destino: <strong>{unitLabel}</strong> · Placa: {approval.plate ?? "Sem placa"} · Tel: {approval.visitor_phone ?? "Sem fone"}
                       </span>
-                      {approval.notes ? <small className="muted">{approval.notes}</small> : null}
+                      {approval.notes ? <small>{approval.notes}</small> : null}
                     </div>
                     <span
                       className={`status-badge ${
@@ -432,17 +459,28 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   </article>
                 );
               })}
-              {approvals.length === 0 ? <p className="muted compact">Nenhuma solicitação recente ao morador.</p> : null}
+              {approvals.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Nenhuma solicitação recente ao morador.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
           {/* Fila de Acessos Recentes */}
-          <section className="app-panel operator-panel">
-            <h2>Fila de Acessos Recentes</h2>
-            <div className="table-list">
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Fila de Acessos Recentes</h2>
+                <p className="section-description">
+                  Registro cronológico dos últimos eventos de passagem na portaria.
+                </p>
+              </div>
+            </div>
+
+            <div className="list-stack">
               {events.slice(0, 15).map((event) => (
-                <article className="event-row" key={event.id}>
-                  <span className={`status-badge ${event.decision}`}>{decisionLabel(event.decision)}</span>
+                <article className="list-row" key={event.id}>
                   <div>
                     <strong>
                       {metadataText(event.metadata, "visitorName") ?? event.plate ?? "Acesso operacional"}
@@ -452,27 +490,43 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                       {accessPointById.get(event.access_point_id ?? "")?.name ?? "Ponto não informado"} ·{" "}
                       {formatDate(event.decided_at)}
                     </span>
+                    <small>{event.reason ?? metadataText(event.metadata, "unitReference") ?? "Sem observação"}</small>
                   </div>
-                  <small>{event.reason ?? metadataText(event.metadata, "unitReference") ?? "Sem observação"}</small>
+                  <span className={`status-badge ${event.decision === "allow" ? "active" : event.decision === "deny" ? "destructive" : "inactive"}`}>
+                    {decisionLabel(event.decision)}
+                  </span>
                 </article>
               ))}
-              {events.length === 0 ? <p className="muted compact">Nenhum evento encontrado.</p> : null}
+              {events.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Nenhum evento encontrado.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
           {/* Eventos Pendentes */}
-          <section className="app-panel operator-panel">
-            <h2>Eventos Pendentes de Revisão</h2>
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Eventos Pendentes de Revisão</h2>
+                <p className="section-description">
+                  Acessos que necessitam de intervenção direta e decisão do operador.
+                </p>
+              </div>
+              <span className="status-badge inactive">{pendingEvents.length} Pendente(s)</span>
+            </div>
+
             <div className="list-stack">
               {pendingEvents.map((event) => (
-                <article className="list-row pending-row" key={event.id}>
+                <article className="list-row" key={event.id}>
                   <div>
                     <strong>{metadataText(event.metadata, "visitorName") ?? event.plate ?? "Revisão manual"}</strong>
                     <span>
                       {event.reason ?? "Aguardando decisão da portaria"} · {formatDate(event.decided_at)}
                     </span>
                   </div>
-                  <div className="inline-actions">
+                  <div className="split-actions">
                     <form action={resolvePendingAccessAction}>
                       <input name="eventId" type="hidden" value={event.id} />
                       <button name="decision" type="submit" value="allow">
@@ -488,169 +542,217 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   </div>
                 </article>
               ))}
-              {pendingEvents.length === 0 ? <p className="muted compact">Sem eventos pendentes de revisão.</p> : null}
+              {pendingEvents.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Sem eventos pendentes de revisão.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
           {/* Visitantes Esperados Hoje */}
-          <section className="app-panel operator-panel">
-            <h2>Visitantes Esperados Hoje</h2>
-            <div className="table-list">
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Visitantes Esperados Hoje</h2>
+                <p className="section-description">
+                  Convites digitais ativos cadastrados pelos moradores com previsão para hoje.
+                </p>
+              </div>
+              <span className="status-badge active">{expectedInvites.length} Esperado(s)</span>
+            </div>
+
+            <div className="list-stack">
               {expectedInvites.map((invite) => (
-                <article className="event-row" key={invite.id}>
-                  <span className="status-badge allow">{invite.use_count}/{invite.max_uses}</span>
+                <article className="list-row" key={invite.id}>
                   <div>
                     <strong>{invite.visitor_name}</strong>
                     <span>
-                      {invite.plate ?? "Sem placa"} · {invite.visitor_phone ?? "Sem telefone"} ·{" "}
-                      {formatDate(invite.starts_at)}
+                      {invite.plate ?? "Sem placa"} · {invite.visitor_phone ?? "Sem telefone"} · {formatDate(invite.starts_at)}
                     </span>
+                    <small>{invite.unit_id ? unitsById.get(invite.unit_id)?.number ?? "Unidade" : "Unidade não informada"}</small>
                   </div>
-                  <small>{invite.unit_id ? unitsById.get(invite.unit_id)?.number ?? "Unidade" : "Unidade não informada"}</small>
+                  <span className="status-badge active">{invite.use_count}/{invite.max_uses} Usos</span>
                 </article>
               ))}
-              {expectedInvites.length === 0 ? <p className="muted compact">Nenhum visitante esperado no filtro atual.</p> : null}
+              {expectedInvites.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Nenhum visitante esperado no filtro atual.</p>
+                </div>
+              ) : null}
             </div>
           </section>
         </div>
 
         <aside className="side-column">
           {/* Solicitar Entrada ao Morador (PWA) */}
-          <section className="app-panel operator-panel" style={{ border: "2px solid #0284c7" }}>
+          <section className="admin-section" style={{ border: "1px solid #0284c7" }}>
             <h2 style={{ color: "#0284c7" }}>📲 Solicitar Entrada ao Morador</h2>
-            <p className="muted compact">Dispara notificação instantânea para o smartphone do morador aprovar.</p>
-            <form action={requestResidentApprovalAction} className="auth-form" style={{ marginTop: "10px" }}>
-              <label>
-                Unidade de Destino *
-                <select name="unitId" required>
-                  <option value="">Selecione a Unidade</option>
-                  {units.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.block ? `Bloco ${u.block} - ` : ""}Unidade {u.number}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <p className="section-description">
+              Dispara notificação instantânea para o smartphone do morador autorizar a entrada.
+            </p>
+            <form action={requestResidentApprovalAction} className="admin-form">
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))"
+                }}
+              >
+                <label>
+                  Unidade de Destino *
+                  <select name="unitId" required>
+                    <option value="">Selecione a Unidade</option>
+                    {units.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.block ? `Bloco ${u.block} - ` : ""}Unidade {u.number}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label>
-                Morador Responsável *
-                <select name="residentId" required>
-                  <option value="">Selecione o Morador</option>
-                  {residents.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.full_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <label>
+                  Morador Responsável *
+                  <select name="residentId" required>
+                    <option value="">Selecione o Morador</option>
+                    {residents.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label>
-                Nome do Visitante / Entregador *
-                <input name="visitorName" placeholder="Ex: Carlos (Entrega Mercado Livre)" required />
-              </label>
+                <label style={{ gridColumn: "1 / -1" }}>
+                  Nome do Visitante / Entregador *
+                  <input name="visitorName" placeholder="Ex: Carlos (Entrega Mercado Livre)" required />
+                </label>
 
-              <label>
-                Placa (se houver)
-                <input name="plate" placeholder="ABC1D23" />
-              </label>
+                <label>
+                  Placa do Veículo
+                  <input name="plate" placeholder="ABC1D23" />
+                </label>
 
-              <label>
-                Telefone / WhatsApp
-                <input name="visitorPhone" placeholder="(11) 99999-0000" />
-              </label>
+                <label>
+                  Telefone / WhatsApp
+                  <input name="visitorPhone" placeholder="(11) 99999-0000" />
+                </label>
 
-              <label>
-                Observação para o Morador
-                <input name="notes" placeholder="Ex: Pacote grande na portaria" />
-              </label>
+                <label style={{ gridColumn: "1 / -1" }}>
+                  Observação para o Morador
+                  <input name="notes" placeholder="Ex: Pacote grande na portaria" />
+                </label>
+              </div>
 
-              <button style={{ background: "#0284c7", borderColor: "#0284c7", minHeight: "44px" }} type="submit">
+              <button style={{ background: "#0284c7", color: "#ffffff", minHeight: "44px" }} type="submit">
                 🔔 Notificar Morador no PWA
               </button>
             </form>
           </section>
 
           {/* Registro Rápido de Prestador Homologado */}
-          <section className="app-panel operator-panel">
+          <section className="admin-section">
             <h2>🛠️ Entrada de Prestador Homologado</h2>
-            <form action={registerSupplierAccessAction} className="auth-form">
-              <label>
-                Prestador Cadastrado *
-                <select name="supplierName" required>
-                  <option value="">Selecione a Empresa / Técnico</option>
-                  {suppliers.map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name} ({supplierCategoryLabels[s.category] ?? s.category}) - {s.allowed_time_start} às {s.allowed_time_end}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <p className="section-description">
+              Registro de fluxo para empresas e prestadores de serviço cadastrados.
+            </p>
+            <form action={registerSupplierAccessAction} className="admin-form">
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))"
+                }}
+              >
+                <label>
+                  Prestador Cadastrado *
+                  <select name="supplierName" required>
+                    <option value="">Selecione a Empresa</option>
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name} ({supplierCategoryLabels[s.category] ?? s.category})
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label>
-                Sentido
-                <select defaultValue="entry" name="direction">
-                  <option value="entry">Entrada</option>
-                  <option value="exit">Saída</option>
-                </select>
-              </label>
+                <label>
+                  Sentido
+                  <select defaultValue="entry" name="direction">
+                    <option value="entry">Entrada</option>
+                    <option value="exit">Saída</option>
+                  </select>
+                </label>
 
-              <label>
-                Placa do Veículo / Crachá
-                <input name="plate" placeholder="ABC1D23 ou Crachá" />
-              </label>
+                <label>
+                  Placa / Crachá
+                  <input name="plate" placeholder="ABC1D23 ou Crachá" />
+                </label>
 
-              <label>
-                Observações do Serviço
-                <input name="notes" placeholder="Ex: Manutenção elevador torre B" />
-              </label>
+                <label>
+                  Observações do Serviço
+                  <input name="notes" placeholder="Ex: Manutenção elevador torre B" />
+                </label>
+              </div>
 
-              <button type="submit">Registrar Acesso Prestador</button>
+              <button type="submit" style={{ minHeight: "44px" }}>Registrar Acesso Prestador</button>
             </form>
           </section>
 
           {/* Liberação Manual */}
-          <section className="app-panel operator-panel">
-            <h2>Liberação Manual</h2>
-            <form action={recordManualAccessAction} className="auth-form">
-              <label>
-                Nome ou Identificação
-                <input name="visitorName" placeholder="Visitante, entrega ou colaborador" />
-              </label>
-              <label>
-                Placa
-                <input name="plate" placeholder="ABC1D23" />
-              </label>
-              <label>
-                Unidade ou Destino
-                <input name="unitReference" placeholder="Bloco A / 101" />
-              </label>
-              <label>
-                Sentido
-                <select defaultValue="entry" name="direction">
-                  <option value="entry">Entrada</option>
-                  <option value="exit">Saída</option>
-                </select>
-              </label>
-              <label>
-                Ponto de Acesso
-                <select defaultValue="" name="accessPointId">
-                  <option value="">Não acionar portão</option>
-                  {accessPoints.map((point) => (
-                    <option key={point.id} value={point.id}>
-                      {point.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Observação
-                <input name="reason" placeholder="Motivo da liberação ou negação" />
-              </label>
+          <section className="admin-section">
+            <h2>Liberação Manual de Acesso</h2>
+            <p className="section-description">
+              Registro manual de entrada ou saída sem convite prévio.
+            </p>
+            <form action={recordManualAccessAction} className="admin-form">
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))"
+                }}
+              >
+                <label>
+                  Nome ou Identificação
+                  <input name="visitorName" placeholder="Visitante ou colaborador" />
+                </label>
+                <label>
+                  Placa
+                  <input name="plate" placeholder="ABC1D23" />
+                </label>
+                <label>
+                  Unidade ou Destino
+                  <input name="unitReference" placeholder="Bloco A / 101" />
+                </label>
+                <label>
+                  Sentido
+                  <select defaultValue="entry" name="direction">
+                    <option value="entry">Entrada</option>
+                    <option value="exit">Saída</option>
+                  </select>
+                </label>
+                <label style={{ gridColumn: "1 / -1" }}>
+                  Ponto de Acesso
+                  <select defaultValue="" name="accessPointId">
+                    <option value="">Não acionar portão</option>
+                    {accessPoints.map((point) => (
+                      <option key={point.id} value={point.id}>
+                        {point.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label style={{ gridColumn: "1 / -1" }}>
+                  Observação
+                  <input name="reason" placeholder="Motivo da liberação ou negação" />
+                </label>
+              </div>
               <div className="split-actions">
-                <button name="decision" type="submit" value="allow">
+                <button name="decision" type="submit" value="allow" style={{ minHeight: "44px" }}>
                   Liberar Acesso
                 </button>
-                <button className="danger-button" name="decision" type="submit" value="deny">
+                <button className="danger-button" name="decision" type="submit" value="deny" style={{ minHeight: "44px" }}>
                   Negar
                 </button>
               </div>
@@ -658,8 +760,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           </section>
 
           {/* Status dos Portões */}
-          <section className="app-panel operator-panel">
-            <h2>Status dos Portões</h2>
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Status dos Portões</h2>
+                <p className="section-description">
+                  Último status de acionamento registrado em cada portão.
+                </p>
+              </div>
+            </div>
             <div className="list-stack">
               {accessPoints.map((point) => {
                 const command = latestCommandByAccessPoint.get(point.id);
@@ -668,65 +777,93 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   <article className="list-row" key={point.id}>
                     <div>
                       <strong>{point.name}</strong>
-                      <span>{point.kind}</span>
+                      <span>Tipo: {point.kind}</span>
                     </div>
                     <small>{command ? `${command.command} · ${command.status}` : "Sem comando recente"}</small>
                   </article>
                 );
               })}
-              {accessPoints.length === 0 ? <p className="muted compact">Nenhum ponto de acesso cadastrado.</p> : null}
+              {accessPoints.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Nenhum ponto de acesso cadastrado.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
           {/* Registrar Ocorrência */}
-          <section className="app-panel operator-panel">
+          <section className="admin-section">
             <h2>Registrar Ocorrência na Portaria</h2>
-            <form action={createOccurrenceAction} className="auth-form">
-              <label>
-                Título do Incidente *
-                <input name="title" placeholder="Ex: Veículo bloqueando rampa, som alto..." required />
-              </label>
-              <label>
-                Severidade
-                <select defaultValue="medium" name="severity">
-                  <option value="low">Baixa</option>
-                  <option value="medium">Média</option>
-                  <option value="high">Alta</option>
-                  <option value="critical">Crítica</option>
-                </select>
-              </label>
-              <label>
-                Descrição dos Fatos
-                <textarea name="description" placeholder="Descreva o ocorrido e medidas tomadas..." rows={2} />
-              </label>
-              <button type="submit">Gravar Ocorrência</button>
+            <p className="section-description">
+              Registro no livro de ocorrências do turno de serviço.
+            </p>
+            <form action={createOccurrenceAction} className="admin-form">
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))"
+                }}
+              >
+                <label>
+                  Título do Incidente *
+                  <input name="title" placeholder="Ex: Veículo bloqueando rampa" required />
+                </label>
+                <label>
+                  Severidade
+                  <select defaultValue="medium" name="severity">
+                    <option value="low">Baixa</option>
+                    <option value="medium">Média</option>
+                    <option value="high">Alta</option>
+                    <option value="critical">Crítica</option>
+                  </select>
+                </label>
+                <label style={{ gridColumn: "1 / -1" }}>
+                  Descrição dos Fatos
+                  <textarea name="description" placeholder="Descreva o ocorrido e medidas tomadas..." rows={2} />
+                </label>
+              </div>
+              <button type="submit" style={{ minHeight: "44px" }}>Gravar Ocorrência</button>
             </form>
           </section>
 
           {/* Ocorrências Abertas */}
-          <section className="app-panel operator-panel">
-            <h2>Ocorrências Abertas ({occurrences.length})</h2>
+          <section className="admin-section">
+            <div className="section-heading">
+              <div>
+                <h2>Ocorrências Abertas</h2>
+                <p className="section-description">
+                  Incidentes em andamento aguardando resolução ou vistoria.
+                </p>
+              </div>
+              <span className="status-badge inactive">{occurrences.length} Aberta(s)</span>
+            </div>
             <div className="list-stack">
               {occurrences.map((occurrence) => (
                 <article className="list-row" key={occurrence.id}>
                   <div>
                     <strong>{occurrence.title}</strong>
                     <span>
-                      Severidade {occurrence.severity} · {formatDate(occurrence.created_at)}
+                      Severidade: {occurrence.severity} · {formatDate(occurrence.created_at)}
                     </span>
+                    {occurrence.description ? <small>{occurrence.description}</small> : null}
                   </div>
                 </article>
               ))}
-              {occurrences.length === 0 ? <p className="muted compact">Sem ocorrências abertas.</p> : null}
+              {occurrences.length === 0 ? (
+                <div className="empty-state" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Sem ocorrências abertas.</p>
+                </div>
+              ) : null}
             </div>
           </section>
         </aside>
       </section>
 
       <footer className="operator-footer">
-        <span>{profile.fullName}</span>
-        <span>{profile.role}</span>
-        <span>{profile.tenantId}</span>
+        <span>Operador: {profile.fullName}</span>
+        <span>Perfil: {profile.role}</span>
+        <span>Condomínio ID: {profile.tenantId}</span>
       </footer>
     </main>
   );

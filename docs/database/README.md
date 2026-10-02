@@ -51,7 +51,9 @@ Row Level Security is enabled on tenant-owned and operational tables. Initial po
 
 Supabase environments are tracked separately:
 
-- DEV: `kynovia-access-dev` / `gexmghjenqourlovtelj`
+- DEV: `Condominios` / `moriphxbocijjjhnblez` (us-west-2)
+- DEV (Anterior): `Condominios` / `fviiwvpcbsriemmxpjxo` (us-west-2)
+- DEV (Legado): `kynovia-access-dev` / `gexmghjenqourlovtelj` (sa-east-1)
 - STAGING: pending project creation after cost confirmation.
 - PROD: pending project creation after cost confirmation.
 
