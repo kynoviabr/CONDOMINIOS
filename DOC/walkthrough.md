@@ -139,6 +139,7 @@ Este PR carrega alterações funcionais de ciclo anterior que **não são purame
 | `9558a31` | style: apply green forest design system across all portals |
 | `619a084` | docs: add green forest design system walkthrough and portal mockups to DOC/ |
 | `8eca84b` | docs: correct walkthrough — accurate hex count, both commits, functional changes disclosed |
+| `cae37e1` | docs: version DOC/system-documentation.md and correct walkthrough inconsistencies |
 
 ---
 
