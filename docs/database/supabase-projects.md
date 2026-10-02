@@ -6,11 +6,11 @@ Kynovia Access separates Supabase resources by environment.
 
 | Environment | Project name | Project ref | Region | Status |
 | --- | --- | --- | --- | --- |
-| DEV | `kynovia-access-dev` | `gexmghjenqourlovtelj` | `sa-east-1` | Active |
+| DEV (Ativo) | `Condominios` | `moriphxbocijjjhnblez` | `us-west-2` | Active |
+| DEV (Anterior) | `Condominios` | `fviiwvpcbsriemmxpjxo` | `us-west-2` | Migrado |
+| DEV (Legado) | `kynovia-access-dev` | `gexmghjenqourlovtelj` | `sa-east-1` | Inativo |
 | STAGING | Pending | Pending | `sa-east-1` preferred | Requires cost confirmation |
 | PROD | Pending | Pending | `sa-east-1` preferred | Requires cost confirmation |
-
-The Supabase organization discovered for the project is `kynovia` with organization id `ndiwwirmstfbdcnfmpke`.
 
 ## Creation Rules
 

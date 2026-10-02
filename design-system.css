@@ -3,99 +3,119 @@
 :root {
   color-scheme: light;
 
-  --background: 210 38% 97%;
-  --foreground: 210 72% 15%;
-  --bg-navy: 210 72% 15%;
-  --bg-page: 210 38% 97%;
+  /* Page backgrounds */
+  --background: 150 20% 96%;
+  --foreground: 150 30% 10%;
+  --bg-navy: 150 45% 14%;
+  --bg-page: 150 20% 96%;
   --bg-surface: 0 0% 100%;
-  --bg-subtle: 210 38% 96%;
+  --bg-subtle: 150 18% 94%;
 
+  /* Card & popover */
   --card: 0 0% 100%;
-  --card-foreground: 210 72% 15%;
+  --card-foreground: 150 30% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 210 72% 15%;
+  --popover-foreground: 150 30% 10%;
 
-  --primary: 243 100% 68%;
+  /* Primary — verde floresta vibrante */
+  --primary: 152 55% 32%;
   --primary-foreground: 0 0% 100%;
-  --primary-dark: 243 75% 59%;
-  --primary-light: 243 100% 95%;
+  --primary-dark: 152 60% 22%;
+  --primary-light: 152 55% 93%;
 
-  --color-purple: 243 100% 68%;
-  --color-purple-dark: 243 75% 59%;
-  --color-purple-light: 243 100% 95%;
-  --color-cyan: 190 100% 50%;
-  --color-green: 153 100% 42%;
+  /* Legacy color aliases (mantidos para compatibilidade) */
+  --color-purple: 152 55% 32%;
+  --color-purple-dark: 152 60% 22%;
+  --color-purple-light: 152 55% 93%;
+  --color-cyan: 168 72% 42%;
+  --color-green: 142 76% 36%;
 
-  --secondary: 210 38% 96%;
-  --secondary-foreground: 210 72% 15%;
-  --muted: 210 38% 96%;
-  --muted-foreground: 213 19% 33%;
-  --text-secondary: 213 19% 33%;
-  --text-muted: 211 17% 57%;
+  /* Secondary & muted */
+  --secondary: 150 18% 94%;
+  --secondary-foreground: 150 30% 16%;
+  --muted: 150 18% 94%;
+  --muted-foreground: 150 12% 40%;
+  --text-secondary: 150 12% 40%;
+  --text-muted: 150 10% 58%;
 
-  --accent: 190 100% 50%;
-  --accent-foreground: 210 72% 15%;
+  /* Accent — verde médio para hover e destaques */
+  --accent: 152 40% 42%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 348 78% 49%;
+  /* Destructive — vermelho padrão */
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --danger-bg: 343 71% 94%;
-  --danger-text: 348 78% 49%;
+  --danger-bg: 0 86% 97%;
+  --danger-text: 0 72% 51%;
 
-  --success: 152 79% 27%;
+  /* Success — verde confirmação */
+  --success: 142 72% 29%;
   --success-foreground: 0 0% 100%;
-  --success-bg: 144 64% 89%;
-  --warning: 31 100% 29%;
+  --success-bg: 142 60% 90%;
+
+  /* Warning — âmbar (badge "Gerado" no sistema original) */
+  --warning: 35 92% 38%;
   --warning-foreground: 0 0% 100%;
-  --warning-bg: 48 100% 90%;
-  --info: 243 75% 59%;
+  --warning-bg: 45 96% 90%;
+
+  /* Info */
+  --info: 152 55% 32%;
   --info-foreground: 0 0% 100%;
-  --info-bg: 243 100% 95%;
+  --info-bg: 152 55% 93%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --border-hover: 214 14% 79%;
-  --ring: 243 100% 68%;
+  /* Borders & inputs */
+  --border: 150 16% 88%;
+  --input: 150 16% 88%;
+  --border-hover: 150 14% 76%;
+  --ring: 152 55% 32%;
 
+  /* Border radius */
   --radius: 0.625rem;
   --radius-chip: 4px;
-  --radius-btn: 6px;
-  --radius-card: 10px;
+  --radius-btn: 8px;
+  --radius-card: 12px;
   --radius-modal: 20px;
   --radius-pill: 9999px;
 
-  --brand-primary: 243 100% 68%;
-  --brand-secondary: 210 38% 96%;
-  --brand-accent: 190 100% 50%;
+  /* Brand aliases */
+  --brand-primary: 152 55% 32%;
+  --brand-secondary: 150 18% 94%;
+  --brand-accent: 168 72% 42%;
   --brand-primary-contrast: #ffffff;
 
-  --gradient-primary: linear-gradient(135deg, hsl(243 100% 68%), hsl(243 75% 59%));
-  --gradient-accent: linear-gradient(135deg, hsl(190 100% 50%), hsl(243 100% 68%));
-  --gradient-hero: linear-gradient(135deg, hsl(210 72% 15%) 0%, hsl(243 75% 25%) 100%);
-  --gradient-surface: linear-gradient(180deg, hsl(210 38% 97%), hsl(210 38% 95%));
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(152 55% 32%), hsl(152 60% 22%));
+  --gradient-accent: linear-gradient(135deg, hsl(168 72% 42%), hsl(152 55% 32%));
+  --gradient-hero: linear-gradient(135deg, hsl(150 45% 14%) 0%, hsl(152 45% 22%) 100%);
+  --gradient-surface: linear-gradient(180deg, hsl(150 20% 96%), hsl(150 18% 94%));
 
+  /* Shadows */
   --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(149, 157, 165, 0.15);
-  --shadow-lg: 0 16px 48px rgba(10, 37, 64, 0.12);
-  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.32);
-  --shadow-focus: 0 0 0 3px rgba(99, 91, 255, 0.18);
-  --shadow-glow: 0 8px 24px rgba(99, 91, 255, 0.18);
+  --shadow-md: 0 8px 24px rgba(0, 50, 20, 0.10);
+  --shadow-lg: 0 16px 48px rgba(0, 50, 20, 0.12);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.24);
+  --shadow-focus: 0 0 0 3px rgba(34, 120, 74, 0.22);
+  --shadow-glow: 0 8px 24px rgba(34, 120, 74, 0.22);
 
+  /* Transitions */
   --transition-base: 200ms ease;
   --transition-modal: 250ms ease-out;
   --transition-micro: 150ms ease;
 
+  /* Typography */
   --font-heading: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
 
-  --sidebar-background: 210 72% 15%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-primary: 243 100% 68%;
+  /* Sidebar — verde escuro (igual ao sistema Gabi Ludwig) */
+  --sidebar-background: 150 45% 14%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-primary: 152 55% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 50% 22%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 210 40% 25%;
-  --sidebar-ring: 243 100% 68%;
+  --sidebar-accent: 150 38% 20%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-border: 150 35% 18%;
+  --sidebar-ring: 152 55% 42%;
 }
 
 html {

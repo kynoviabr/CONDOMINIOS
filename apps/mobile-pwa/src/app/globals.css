@@ -38,7 +38,7 @@ select {
 }
 
 .eyebrow {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -79,7 +79,7 @@ label {
 }
 
 label span[aria-hidden="true"] {
-  color: #0f766e;
+  color: hsl(var(--primary));
   font-weight: 400;
 }
 
@@ -104,7 +104,7 @@ select {
 button,
 .button-link {
   align-items: center;
-  background: #0f766e;
+  background: hsl(var(--primary));
   border: 0;
   border-radius: 6px;
   color: #ffffff;
@@ -132,7 +132,7 @@ button.danger {
 }
 
 .text-link {
-  color: #0f766e;
+  color: hsl(var(--primary));
   display: inline-block;
   font-weight: 500;
   margin-top: 20px;
@@ -470,7 +470,7 @@ button.danger {
 
 .saas-sidebar {
   background: linear-gradient(180deg, hsl(var(--bg-navy)), hsl(218 42% 13%));
-  border-right: 1px solid hsl(210 24% 22%);
+  border-right: 1px solid hsl(var(--sidebar-border));
   color: hsl(var(--sidebar-foreground));
   display: flex;
   flex-direction: column;
@@ -532,7 +532,7 @@ button.danger {
 }
 
 .sidebar-footer {
-  border-top: 1px solid hsl(210 24% 22%);
+  border-top: 1px solid hsl(var(--sidebar-border));
   display: grid;
   gap: 12px;
   margin-top: auto;

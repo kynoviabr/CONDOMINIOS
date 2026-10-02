@@ -1,6 +1,6 @@
 # Kynovia Design Tokens
 
-Fonte: Clinova (`/Users/dempas/Documents/remix-of-clinic-journey`).
+Fonte: Kynovia Access Design System Architecture.
 
 ## Princípios
 
