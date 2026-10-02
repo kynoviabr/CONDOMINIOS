@@ -138,19 +138,42 @@ Este PR carrega alterações funcionais de ciclo anterior que **não são purame
 |:---|:---|
 | `9558a31` | style: apply green forest design system across all portals |
 | `619a084` | docs: add green forest design system walkthrough and portal mockups to DOC/ |
+| `8eca84b` | docs: correct walkthrough — accurate hex count, both commits, functional changes disclosed |
 
 ---
 
 ## Pendências antes do merge
 
-- [ ] Revisor deve avaliar as alterações funcionais do Mobile PWA e Web Portaria dashboard
+- [ ] Revisor deve avaliar as alterações funcionais do Mobile PWA e Web Portaria dashboard e decidir se pertencem a este PR ou devem ser separadas
 - [ ] Verificação visual humana nas aplicações rodando localmente
-- [ ] Tokenização completa dos hexadecimais remanescentes (escopo de PR futuro)
+- [ ] Tokenização completa dos hexadecimais remanescentes nos três portais (escopo de PR futuro)
 
 ---
 
-## O que NÃO foi alterado
+## Escopo real deste PR
 
+### Alterado — Visual (design system)
+- Tokens de cor em `design-system.css`
+- `apps/web-portaria/src/app/globals.css` — completamente tokenizado (0 hex fixos)
+- `apps/condo-admin/src/app/globals.css` — tokenização parcial dos novos estilos
+- `apps/kynovia-admin/src/app/globals.css` — substituição de `#0f766e` por tokens
+- `apps/mobile-pwa/src/app/globals.css` — substituição de `#0f766e` por tokens
+- `apps/mobile-pwa/src/app/layout.tsx` — `themeColor` atualizado para verde
+
+### Alterado — Funcional (carregado de ciclo anterior, requer decisão do revisor)
+- `apps/mobile-pwa/src/app/home/invites/actions.ts` — nova lógica de fallback de vínculo residente via `condominium_memberships`
+- `apps/mobile-pwa/src/app/home/invites/page.tsx` — alterações na UI de convites
+- `apps/mobile-pwa/src/app/home/page.tsx` — alterações na UI da tela inicial
+- `apps/web-portaria/src/app/dashboard/page.tsx` — refatoração de layout e grid de métricas
+- `apps/web-portaria/src/app/dashboard/actions.ts` — ajuste de queries
+
+### Alterado — Documentação
+- `docs/database/README.md`, `docs/database/supabase-projects.md`
+- `docs/implementation/operational-pilot/readiness-audit.md`
+- `system-documentation.md`, `tokens.md`
+- `DOC/walkthrough.md`, `DOC/images/` (4 mockups), `DOC/system-documentation.md`
+
+### Não alterado
 - Nenhuma migration do Supabase (local ou remota)
-- Nenhuma regra de negócio, política de acesso ou RLS
+- Nenhuma tabela RLS ou política de segurança de banco de dados
 - Nenhum dado de condomínio, unidade, morador ou veículo
